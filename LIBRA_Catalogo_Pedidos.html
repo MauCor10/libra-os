@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sagrada Madre · Catálogo de Pedidos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1a1208; --paper:#faf6ef; --cream:#f2ead8; --gold:#c8913a;
+  --gold-l:#e8c478; --smoke:#7a6e5f; --line:#ddd3bc; --accent:#8b4513;
+  --green:#3d6b44; --red:#8b2020; --surface:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:14px;}
+
+/* HEADER */
+.header{background:var(--ink);color:var(--paper);padding:20px 28px 16px;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--gold);}
+.header-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:400;letter-spacing:.02em;}
+.header-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--gold-l);margin-top:4px;text-transform:uppercase;}
+.header-date{font-family:'DM Mono',monospace;font-size:11px;color:#888;text-align:right;}
+
+/* STEPS */
+.steps{display:flex;background:var(--cream);border-bottom:1px solid var(--line);padding:0 28px;}
+.step{padding:14px 0;margin-right:32px;font-size:12px;font-weight:500;color:var(--smoke);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.step.active{color:var(--ink);border-bottom-color:var(--gold);}
+.step.done{color:var(--green);}
+
+/* PANELS */
+.panel{display:none;max-width:900px;margin:0 auto;padding:28px;}
+.panel.active{display:block;}
+
+/* FORM */
+.form-section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;margin-bottom:16px;}
+.form-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;color:var(--ink);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.full{grid-template-columns:1fr;}
+.field label{display:block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--smoke);margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:5px;background:var(--paper);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);background:#fff;}
+.client-toggle{display:flex;border:1.5px solid var(--ink);border-radius:5px;overflow:hidden;}
+.client-btn{flex:1;padding:9px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:transparent;border:none;cursor:pointer;color:var(--smoke);transition:all .15s;}
+.client-btn.active{background:var(--ink);color:var(--paper);}
+
+/* CATALOG */
+.controls{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.search-wrap{flex:1;min-width:200px;position:relative;}
+.search-wrap input{width:100%;padding:8px 12px 8px 30px;border:1px solid var(--line);border-radius:5px;background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;}
+.search-wrap input:focus{border-color:var(--gold);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--smoke);font-size:14px;}
+.filter-select{padding:8px 12px;border:1px solid var(--line);border-radius:5px;background:var(--surface);font-size:13px;color:var(--ink);outline:none;cursor:pointer;}
+
+.line-group{}
+.line-header{background:var(--cream);border-bottom:1px solid var(--line);border-top:1px solid var(--line);padding:9px 24px;font-family:'Playfair Display',serif;font-size:13px;font-style:italic;color:var(--smoke);display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+.line-header:hover{background:#ede5d0;}
+.lh-name{flex:1;}
+.lh-count{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);}
+.lh-toggle{font-size:10px;color:var(--smoke);transition:transform .2s;}
+.line-header.collapsed .lh-toggle{transform:rotate(-90deg);}
+
+.product-table{width:100%;border-collapse:collapse;}
+.product-table.hidden{display:none;}
+.product-row{border-bottom:1px solid var(--line);transition:background .1s;}
+.product-row:hover{background:#f5eedf;}
+.product-row.has-qty{background:#fdf8ec;}
+.col-code{padding:8px 10px 8px 24px;font-family:'DM Mono',monospace;font-size:10px;color:var(--smoke);width:80px;white-space:nowrap;}
+.col-name{padding:8px;font-size:13px;line-height:1.3;}
+.col-price{padding:8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--smoke);width:100px;text-align:right;white-space:nowrap;}
+.col-price-iva{padding:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);width:110px;text-align:right;white-space:nowrap;}
+.col-qty{padding:6px 20px 6px 8px;width:84px;text-align:right;}
+.qty-input{width:60px;padding:5px 7px;border:1.5px solid var(--line);border-radius:3px;text-align:center;font-family:'DM Mono',monospace;font-size:13px;color:var(--ink);background:var(--paper);outline:none;transition:border-color .15s;}
+.qty-input:focus{border-color:var(--gold);background:#fff;}
+.qty-input.filled{border-color:var(--green);background:#f0f8f1;color:var(--green);}
+.no-results{padding:48px;text-align:center;color:var(--smoke);font-style:italic;}
+
+/* SIDEBAR ORDER */
+.layout{display:grid;grid-template-columns:1fr 300px;gap:0;min-height:400px;}
+.catalog-area{border-right:1px solid var(--line);overflow:hidden;}
+.sidebar{padding:20px;background:var(--cream);}
+.sidebar-title{font-family:'Playfair Display',serif;font-size:15px;margin-bottom:14px;color:var(--ink);}
+.order-empty{font-size:12px;color:var(--smoke);font-style:italic;text-align:center;padding:20px 0;}
+.order-item{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);}
+.order-item:last-child{border-bottom:none;}
+.oi-qty{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--gold);min-width:26px;text-align:right;}
+.oi-name{font-size:11px;color:#555;flex:1;line-height:1.4;}
+.oi-total{font-family:'DM Mono',monospace;font-size:11px;color:var(--smoke);white-space:nowrap;}
+.totals{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);}
+.total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;}
+.total-label{color:var(--smoke);}
+.total-val{font-family:'DM Mono',monospace;}
+.total-row.grand .total-label{font-weight:500;color:var(--ink);}
+.total-row.grand .total-val{font-size:16px;font-weight:500;color:var(--ink);}
+.total-items{font-size:11px;color:var(--smoke);margin-top:4px;}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.btn-primary{padding:11px 24px;background:var(--ink);color:var(--paper);border:none;border-radius:5px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+.btn-primary:hover{background:#333;}
+.btn-secondary{padding:10px 20px;background:transparent;color:var(--smoke);border:1px solid var(--line);border-radius:5px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--smoke);}
+.btn-gold{padding:11px 24px;background:var(--gold);color:var(--ink);border:none;border-radius:5px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;cursor:pointer;}
+.btn-gold:hover{background:var(--gold-l);}
+
+/* CONFIRM */
+.confirm-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+.confirm-table th{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--smoke);border-bottom:1.5px solid var(--ink);padding:6px 8px;text-align:left;}
+.confirm-table th:last-child{text-align:right;}
+.confirm-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.confirm-table td:first-child{font-family:'DM Mono',monospace;font-size:10px;color:var(--smoke);}
+.confirm-table td:nth-child(3),.confirm-table td:nth-child(4),.confirm-table td:last-child{font-family:'DM Mono',monospace;font-size:12px;text-align:right;}
+.confirm-totals{border-top:2px solid var(--ink);padding-top:12px;}
+.ct-row{display:flex;justify-content:space-between;padding:5px 8px;font-family:'DM Mono',monospace;font-size:13px;}
+.ct-row.grand{font-size:17px;font-weight:500;border-top:1px solid var(--line);margin-top:6px;padding-top:10px;}
+.ct-row span:last-child{color:var(--accent);}
+.gift-row td{color:var(--green)!important;}
+
+/* SUCCESS */
+.success-box{background:var(--green);color:white;border-radius:10px;padding:32px;text-align:center;}
+.success-box h2{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:10px;}
+.success-box p{font-size:14px;opacity:.9;line-height:1.6;}
+.order-num{font-family:'DM Mono',monospace;font-size:22px;letter-spacing:.1em;margin:16px 0;background:rgba(255,255,255,.2);display:inline-block;padding:8px 20px;border-radius:5px;}
+
+@media(max-width:700px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .col-code{display:none;}
+  .col-price{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">Sagrada Madre</div>
+    <div class="header-sub">Formulario de pedido · Distribución oficial</div>
+  </div>
+  <div class="header-date" id="headerDate"></div>
+</div>
+
+<div class="steps">
+  <div class="step active" id="step1" onclick="goStep(1)">1 · Tus datos</div>
+  <div class="step" id="step2">2 · Elegí productos</div>
+  <div class="step" id="step3">3 · Confirmar</div>
+</div>
+
+<!-- STEP 1: DATOS DEL CLIENTE -->
+<div class="panel active" id="panel1">
+  <div class="form-section">
+    <div class="form-title">¿Quién hace el pedido?</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nombre completo *</label>
+        <input type="text" id="clientName" placeholder="Tu nombre o nombre del negocio">
+      </div>
+      <div class="field">
+        <label>WhatsApp *</label>
+        <input type="tel" id="clientPhone" placeholder="+54 9 11 1234-5678">
+      </div>
+      <div class="field">
+        <label>Dirección de entrega</label>
+        <input type="text" id="clientAddress" placeholder="Calle, número, ciudad">
+      </div>
+      <div class="field">
+        <label>Notas para la entrega</label>
+        <input type="text" id="clientNotes" placeholder="Ej: timbrar dos veces, dejar con el encargado...">
+      </div>
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-title">Tipo de cliente</div>
+    <div class="client-toggle" style="max-width:400px">
+      <button class="client-btn active" onclick="setClient('cf')" id="btn-cf">Consumidor Final</button>
+      <button class="client-btn" onclick="setClient('mayorista')" id="btn-may">Mayorista</button>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--smoke)">Los precios se actualizan según el tipo seleccionado.</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-gold" onclick="goStep2()">Elegir productos →</button>
+  </div>
+</div>
+
+<!-- STEP 2: CATÁLOGO -->
+<div class="panel" id="panel2">
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Buscar por nombre o código..." oninput="filterProducts()">
+    </div>
+    <select class="filter-select" id="lineFilter" onchange="filterProducts()">
+      <option value="">Todas las líneas</option>
+    </select>
+    <button class="btn-secondary" onclick="clearOrder()">Limpiar</button>
+  </div>
+
+  <div class="layout">
+    <div class="catalog-area">
+      <div id="catalog"></div>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-title">Tu pedido</div>
+      <div id="orderItems"><div class="order-empty">Seleccioná productos con los campos de cantidad</div></div>
+      <div class="totals" id="totalsArea" style="display:none">
+        <div class="total-row"><span class="total-label">Subtotal s/IVA</span><span class="total-val" id="subtotal">$ 0</span></div>
+        <div class="total-row"><span class="total-label">IVA (21%)</span><span class="total-val" id="ivaAmt">$ 0</span></div>
+        <div class="total-row grand"><span class="total-label">Total con IVA</span><span class="total-val" id="grandTotal">$ 0</span></div>
+        <div class="total-items" id="totalItems"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(1)">← Volver</button>
+    <button class="btn-gold" onclick="goStep3()">Revisar pedido →</button>
+  </div>
+</div>
+
+<!-- STEP 3: CONFIRMACIÓN -->
+<div class="panel" id="panel3">
+  <div class="form-section">
+    <div class="form-title">Resumen del pedido</div>
+    <div id="confirmContent"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(2)">← Modificar</button>
+    <button class="btn-gold" onclick="submitOrder()">Confirmar pedido ✓</button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="panel" id="panel4">
+  <div class="success-box">
+    <h2>¡Pedido recibido!</h2>
+    <div class="order-num" id="successOrderNum"></div>
+    <p>Te vamos a contactar por WhatsApp para coordinar la entrega.<br>
+    Cualquier duda escribinos al número de siempre.</p>
+  </div>
+</div>
+
+<script>
+const LINES=[{name:"Palo Santo Sustentable",products:[{code:"5918A",name:"PALO SANTO SUSTENTABLE",cf:1832,may:1018},{code:"5918AA",name:"SAHUMERIO NATURAL MIRRA - OLIBANO",cf:2408,may:1338},{code:"5918AB",name:"SAHUMERIO NATURAL SALVIA BLANCA",cf:2408,may:1338},{code:"5918B",name:"PALO SANTO SUSTENTABLE INCIENSO",cf:1832,may:1018},{code:"5918C",name:"PALO SANTO SUSTENTABLE COPAL",cf:1832,may:1018},{code:"5918D",name:"PALO SANTO SUSTENTABLE MIRRA",cf:1832,may:1018},{code:"5918G",name:"PALO SANTO SUSTENTABLE SANDALO",cf:1832,may:1018},{code:"5918H",name:"PALO SANTO SUSTENTABLE CHAMPA",cf:1832,may:1018},{code:"5918I",name:"PALO SANTO SUSTENTABLE ROMERO",cf:1832,may:1018},{code:"5920A",name:"PALO SANTO SUSTENTABLE JAZMIN",cf:1832,may:1018},{code:"5920B",name:"PALO SANTO SUSTENTABLE VAINILLA",cf:1832,may:1018},{code:"5920C",name:"PALO SANTO SUSTENTABLE YAGRA",cf:1832,may:1018},{code:"5920D",name:"PALO SANTO SUSTENTABLE ROSA",cf:1832,may:1018},{code:"5920E",name:"PALO SANTO SUSTENTABLE LAVANDA",cf:1832,may:1018},{code:"5920F",name:"PALO SANTO SUSTENTABLE RUDA",cf:1832,may:1018},{code:"5920G",name:"PALO SANTO SUSTENTABLE PACHULI",cf:1832,may:1018},{code:"5920H",name:"PALO SANTO SUSTENTABLE VIOLETAS",cf:1832,may:1018},{code:"5920I",name:"PALO SANTO SUSTENTABLE FRESIAS",cf:1832,may:1018},{code:"5920J",name:"PALO SANTO SUSTENTABLE SALVIA",cf:1832,may:1018},{code:"5920K",name:"PALO SANTO SUSTENTABLE CANELA",cf:1832,may:1018}]},
+{name:"Palo Santo Sustentable X4 Corto",products:[{code:"4918A",name:"PALO SANTO SUSTENTABLE X4 PURO - CORTO",cf:860,may:478},{code:"4918B",name:"PALO SANTO SUSTENTABLE X4 INCIENSO - CORTO",cf:860,may:478},{code:"4918G",name:"PALO SANTO SUSTENTABLE X4 SANDALO - CORTO",cf:860,may:478},{code:"4920E",name:"PALO SANTO SUSTENTABLE X4 LAVANDA - CORTO",cf:860,may:478}]},
+{name:"Sahumerios Naturales",products:[{code:"5918J",name:"SAHUMERIO NATURAL CITRONELA NARANJA PS",cf:2408,may:1338},{code:"5918K",name:"SAHUMERIO NATURAL SANDALO OLIBANO",cf:2408,may:1338},{code:"5918M",name:"SAHUMERIO NATURAL MIRRA",cf:2408,may:1338},{code:"5918N",name:"SAHUMERIO NATURAL INCIENSO",cf:2408,may:1338},{code:"5918O",name:"SAHUMERIO NATURAL COPAL",cf:2408,may:1338},{code:"5918P",name:"SAHUMERIO NATURAL YAGRA",cf:2408,may:1338},{code:"5918S",name:"SAHUMERIO NATURAL RUDA ROMERO INCIENSO",cf:2408,may:1338},{code:"5918V",name:"SAHUMERIO NATURAL AMBAR",cf:2408,may:1338},{code:"5918W",name:"SAHUMERIO NATURAL BENJUI",cf:2408,may:1338},{code:"5918X",name:"SAHUMERIO NATURAL PACHULI",cf:2408,may:1338}]},
+{name:"Yagra",products:[{code:"700A",name:"SAHUMERIO YAGRA ROSA Y VAINILLA",cf:2851,may:1584},{code:"700B",name:"SAHUMERIO YAGRA VIOLETAS Y LAVANDA",cf:2851,may:1584},{code:"700C",name:"SAHUMERIO YAGRA ORQUIDEAS Y LAUREL",cf:2851,may:1584},{code:"700D",name:"SAHUMERIO YAGRA MANZANILLA Y OLIBANO",cf:2851,may:1584}]},
+{name:"Grow Cannabis",products:[{code:"5000A",name:"SAHUMERIO PURPLE HINDU KUSH (INDICA)",cf:3065,may:1703},{code:"5000B",name:"SAHUMERIO LEMON HAZE (SATIVA)",cf:3065,may:1703},{code:"5000C",name:"SAHUMERIO TROPICANA COOKIES",cf:3065,may:1703},{code:"5000D",name:"SAHUMERIO BLUE DREAM",cf:3065,may:1703},{code:"5000E",name:"SAHUMERIO MANGO KUSH",cf:3065,may:1703},{code:"5000F",name:"SAHUMERIO WHITE WIDOW",cf:3065,may:1703},{code:"5000G",name:"SAHUMERIO PINEAPPLE PIE",cf:3065,may:1703},{code:"5000H",name:"SAHUMERIO WATER MELON WONDER",cf:3065,may:1703}]},
+{name:"Conos Cannabis",products:[{code:"1522A",name:"CONO PURPLE HINDU KUSH (INDICA)",cf:1876,may:1042},{code:"1522B",name:"CONO LEMON HAZE (SATIVA)",cf:1876,may:1042},{code:"1522C",name:"CONO TROPICANA COOKIES",cf:1876,may:1042},{code:"1522D",name:"CONO BLUE DREAM",cf:1876,may:1042},{code:"1522E",name:"CONO MANGO KUSH",cf:1876,may:1042},{code:"1522F",name:"CONO WHITE WIDOW",cf:1876,may:1042},{code:"1522G",name:"CONO PINEAPPLE PIE",cf:1876,may:1042},{code:"1522H",name:"CONO WATER MELON WONDER",cf:1876,may:1042}]},
+{name:"Blend Masala",products:[{code:"800A",name:"SAHUMERIO MAHA MASALA",cf:3670,may:2039},{code:"800B",name:"SAHUMERIO GAIA MASALA",cf:3670,may:2039}]},
+{name:"India Masala X12",products:[{code:"15355A",name:"SAHUMERIO INDIA MASALA SUN X12",cf:21847,may:12137},{code:"15355B",name:"SAHUMERIO INDIA MASALA DAY X12",cf:21847,may:12137},{code:"15355C",name:"SAHUMERIO INDIA MASALA LIGHT X12",cf:21847,may:12137},{code:"15355D",name:"SAHUMERIO INDIA MASALA SOUL X12",cf:21847,may:12137}]},
+{name:"India Black X12",products:[{code:"15365A",name:"SAHUMERIO INDIA BLACK MOON (INTUITION) X12",cf:15948,may:8860},{code:"15365B",name:"SAHUMERIO INDIA BLACK NIGHT (ETERNAL LOVE) X12",cf:15948,may:8860},{code:"15365C",name:"SAHUMERIO INDIA BLACK ENIGMA (SPIRITUAL GUIDE) X12",cf:15948,may:8860},{code:"15365D",name:"SAHUMERIO INDIA BLACK DIVINE (GROWTH) X12",cf:15948,may:8860},{code:"15365E",name:"SAHUMERIO INDIA BLACK ASTRO (INNER STRENGTH) X12",cf:15948,may:8860},{code:"15365F",name:"SAHUMERIO INDIA BLACK ORIGIN (TRUST) X12",cf:15948,may:8860},{code:"15365G",name:"SAHUMERIO INDIA BLACK BREEZE (CALM) X12",cf:15948,may:8860},{code:"15365H",name:"SAHUMERIO INDIA BLACK MYSTIC (MAGIC) X12",cf:15948,may:8860},{code:"15365I",name:"SAHUMERIO INDIA BLACK ENERGY (EXPANSION) X12",cf:15948,may:8860},{code:"15365J",name:"SAHUMERIO INDIA BLACK SHINE (ILLUMINATION) X12",cf:15948,may:8860},{code:"15365K",name:"SAHUMERIO INDIA BLACK COSMOS (CONNECTION) X12",cf:15948,may:8860},{code:"15365L",name:"SAHUMERIO INDIA BLACK ECLIPSE (UNION) X12",cf:15948,may:8860}]},
+{name:"Sagrado",products:[{code:"1540A",name:"SAHUMERIO SAGRADO AMOR ETERNO",cf:2853,may:1585},{code:"1540B",name:"SAHUMERIO SAGRADO ENCUENTRO DIVINO",cf:2853,may:1585},{code:"1540C",name:"SAHUMERIO SAGRADO GUIA ESPIRITUAL",cf:2853,may:1585},{code:"1540D",name:"SAHUMERIO SAGRADO TERCER OJO",cf:2853,may:1585},{code:"1540E",name:"SAHUMERIO SAGRADO KUNDALINI",cf:2853,may:1585},{code:"1540F",name:"SAHUMERIO SAGRADO SAMADHI",cf:2853,may:1585},{code:"1540G",name:"SAHUMERIO SAGRADO YOGA",cf:2853,may:1585},{code:"1540H",name:"SAHUMERIO SAGRADO MEDITACION",cf:2853,may:1585}]},
+{name:"Tarot",products:[{code:"1541A",name:"SAHUMERIO TAROT DE MASELLA ALMIZCLE",cf:2853,may:1585},{code:"1541B",name:"SAHUMERIO TAROT DE MASELLA MAGNOLIA",cf:2853,may:1585},{code:"1541C",name:"SAHUMERIO TAROT DE MASELLA NAG CHAMPA",cf:2853,may:1585},{code:"1541D",name:"SAHUMERIO TAROT DE MASELLA PIMIENTA ROSA",cf:2853,may:1585},{code:"1541E",name:"SAHUMERIO TAROT DE MASELLA SANDALO",cf:2853,may:1585},{code:"1541F",name:"SAHUMERIO TAROT DE MASELLA VAINILLA",cf:2853,may:1585},{code:"1541G",name:"SAHUMERIO TAROT GEMAS AMATISTA",cf:2853,may:1585},{code:"1541H",name:"SAHUMERIO TAROT GEMAS CUARZO ROSA",cf:2853,may:1585},{code:"1541I",name:"SAHUMERIO TAROT GEMAS ESMERALDA",cf:2853,may:1585},{code:"1541J",name:"SAHUMERIO TAROT GEMAS CITRINO",cf:2853,may:1585},{code:"1541K",name:"SAHUMERIO TAROT GEMAS OPALO",cf:2853,may:1585},{code:"1541L",name:"SAHUMERIO TAROT GEMAS TURMALINNA",cf:2853,may:1585},{code:"1542A",name:"SAHUMERIO ORACULO - ANIMALES SAGRADOS",cf:3350,may:1861},{code:"1542B",name:"SAHUMERIO ORACULO DE LA SABIDURIA",cf:3350,may:1861},{code:"1545A",name:"SAHUMERIO TAROT ANGELES AMOR INCONDICIONAL",cf:2853,may:1585},{code:"1545B",name:"SAHUMERIO TAROT ANGELES GUIA ESPIRITUAL",cf:2853,may:1585},{code:"1545C",name:"SAHUMERIO TAROT ANGELES PODER DIVINO",cf:2853,may:1585},{code:"1545D",name:"SAHUMERIO TAROT ANGELES PROTECTOR",cf:2853,may:1585},{code:"1545E",name:"SAHUMERIO TAROT ANGELES SABIDURIA",cf:2853,may:1585},{code:"1545F",name:"SAHUMERIO TAROT ANGELES FUERZA INTERIOR",cf:2853,may:1585},{code:"1546A",name:"BOMBITA RITUAL BRILLAR",cf:1044,may:580},{code:"1546B",name:"BOMBITA RITUAL AMOR PROPIO",cf:1044,may:580},{code:"1546C",name:"BOMBITA RITUAL FUERZA INTERNA",cf:1044,may:580},{code:"1546D",name:"BOMBITA RITUAL TRANQUILIDAD",cf:1044,may:580},{code:"1546E",name:"BOMBITA RITUAL LUNA LLENA",cf:1044,may:580},{code:"1546F",name:"BOMBITA RITUAL LIMPIEZA ENERGETICA",cf:1044,may:580},{code:"1546G",name:"BOMBITA RITUAL CACAO (SANACION)",cf:1044,may:580},{code:"1546H",name:"BOMBITA RITUAL PURIFICACION",cf:1044,may:580},{code:"1546I",name:"BOMBITA RITUAL ABUNDANCIA",cf:1044,may:580},{code:"1546J",name:"BOMBITA RITUAL MANIFESTAR",cf:1044,may:580},{code:"1546K",name:"BOMBITA RITUAL GRATITUD",cf:1044,may:580},{code:"1546L",name:"BOMBITA RITUAL EMPODERAMIENTO",cf:1044,may:580}]},
+{name:"Ritual",products:[{code:"450A",name:"SAHUMERIO RITUAL BRILLAR",cf:2653,may:1474},{code:"450B",name:"SAHUMERIO RITUAL AMOR PROPIO",cf:2653,may:1474},{code:"450C",name:"SAHUMERIO RITUAL FUERZA INTERNA",cf:2653,may:1474},{code:"450D",name:"SAHUMERIO RITUAL TRANQUILIDAD",cf:2653,may:1474},{code:"450E",name:"SAHUMERIO RITUAL LUNA LLENA",cf:2653,may:1474},{code:"450F",name:"SAHUMERIO RITUAL LIMPIEZA ENERGETICA",cf:2653,may:1474},{code:"450G",name:"SAHUMERIO RITUAL CACAO (SANACION)",cf:2653,may:1474},{code:"450H",name:"SAHUMERIO RITUAL PURIFICACION",cf:2653,may:1474},{code:"450I",name:"SAHUMERIO RITUAL ABUNDANCIA",cf:2653,may:1474},{code:"450J",name:"SAHUMERIO RITUAL MANIFESTAR",cf:2653,may:1474},{code:"450K",name:"SAHUMERIO RITUAL GRATITUD",cf:2653,may:1474},{code:"450L",name:"SAHUMERIO RITUAL EMPODERAMIENTO",cf:2653,may:1474}]},
+{name:"5 Elementos",products:[{code:"6005A",name:"SAHUMERIO 5 ELEMENTOS AGUA - RENACER",cf:2398,may:1332},{code:"6005B",name:"SAHUMERIO 5 ELEMENTOS AIRE - ALEGRIA",cf:2398,may:1332},{code:"6005C",name:"SAHUMERIO 5 ELEMENTOS FUEGO - FUERZA",cf:2398,may:1332},{code:"6005D",name:"SAHUMERIO 5 ELEMENTOS TIERRA - ARMONIA",cf:2398,may:1332},{code:"6005E",name:"SAHUMERIO 5 ELEMENTOS ETER - CLARIDAD",cf:2398,may:1332}]},
+{name:"Botánico",products:[{code:"5020A",name:"SAHUMERIO BOTANICO GARDENIAS CALENDULA",cf:2336,may:1298},{code:"5020B",name:"SAHUMERIO BOTANICO JAZMIN ROSAS",cf:2336,may:1298},{code:"5020C",name:"SAHUMERIO BOTANICO LAVANDA ROSAS",cf:2336,may:1298},{code:"5020D",name:"SAHUMERIO BOTANICO TE VERDE - CHAMPA",cf:2336,may:1298},{code:"5020E",name:"SAHUMERIO BOTANICO MAGNOLIAS",cf:2336,may:1298},{code:"5020F",name:"SAHUMERIO BOTANICO FRESIAS",cf:2336,may:1298},{code:"5020G",name:"SAHUMERIO BOTANICO NARDO INCIENSO",cf:2336,may:1298},{code:"5020H",name:"SAHUMERIO BOTANICO CLAVO DE OLOR ROSAS",cf:2336,may:1298}]},
+{name:"Hierbas",products:[{code:"5918Q",name:"SAHUMERIO LAVANDA-OLIBANO HIERBAS",cf:2711,may:1506},{code:"5918R",name:"SAHUMERIO INCIENSO BLANCO PURO",cf:2711,may:1506},{code:"5918T",name:"SAHUMERIO SALVIA BLANCA",cf:2711,may:1506},{code:"5918U",name:"SAHUMERIO ROSAS Y OLIBANO",cf:2711,may:1506},{code:"5918Y",name:"SAHUMERIO CANELA - ANIS - OLIBANO",cf:2711,may:1506},{code:"5918Z",name:"SAHUMERIO CALENDULA - MANZANILLA - INCIENSO",cf:2711,may:1506},{code:"5919",name:"SAHUMERIO EUCALIPTO - LAUREL - CEDRO",cf:2711,may:1506},{code:"5919A",name:"SAHUMERIO MIX HIERBAS Y FLORES",cf:2711,may:1506}]},
+{name:"Patagónico",products:[{code:"900A",name:"SAHUMERIO PATAGONIA ALGARROBA Y VAINILLA",cf:3186,may:1770},{code:"900C",name:"SAHUMERIO PATAGONIA HIBISCO",cf:3186,may:1770},{code:"900D",name:"SAHUMERIO PATAGONIA YERBA MATE Y MENTA",cf:3186,may:1770},{code:"900E",name:"SAHUMERIO PATAGONIA JAZMIN",cf:3186,may:1770},{code:"900F",name:"SAHUMERIO PATAGONIA LAVANDA SILVESTRE",cf:3186,may:1770},{code:"900G",name:"SAHUMERIO PATAGONIA LIMON",cf:3186,may:1770},{code:"900I",name:"SAHUMERIO PATAGONIA NARANJA VAINILLA",cf:3186,may:1770},{code:"900J",name:"SAHUMERIO PATAGONIA NEROLI",cf:3186,may:1770},{code:"900K",name:"SAHUMERIO PATAGONIA PALMAROSA",cf:3186,may:1770},{code:"900L",name:"SAHUMERIO PATAGONIA ROSA MOSQUETA",cf:3186,may:1770},{code:"900M",name:"SAHUMERIO PATAGONIA RUDA",cf:3186,may:1770},{code:"900N",name:"SAHUMERIO PATAGONIA TILO",cf:3186,may:1770}]},
+{name:"Energía Limpia",products:[{code:"15A",name:"SAHUMERIO ENERGIA LIMPIA RENACER",cf:2648,may:1471},{code:"15B",name:"SAHUMERIO ENERGIA LIMPIA REVITALIZAR",cf:2648,may:1471},{code:"15C",name:"SAHUMERIO ENERGIA LIMPIA ARMONIZAR",cf:2648,may:1471},{code:"15D",name:"SAHUMERIO ENERGIA LIMPIA SANAR",cf:2648,may:1471}]},
+{name:"Triple Combinado",products:[{code:"20",name:"SAHUMERIO TRIPLE COMBINADO",cf:3609,may:2005}]},
+{name:"Dos Aromas Natural",products:[{code:"1760A",name:"SAHUMERIO DOS AROMAS NATURAL COPAL-PALO SANTO",cf:2291,may:1273},{code:"1760B",name:"SAHUMERIO DOS AROMAS NATURAL COPAL-ROMERO",cf:2291,may:1273},{code:"1760C",name:"SAHUMERIO DOS AROMAS NATURAL HIERBAS-OLIBANO",cf:2291,may:1273},{code:"1760D",name:"SAHUMERIO DOS AROMAS NATURAL LAVANDA-OLIBANO",cf:2291,may:1273},{code:"1760E",name:"SAHUMERIO DOS AROMAS NATURAL MIRRA-PALO SANTO",cf:2291,may:1273},{code:"1760F",name:"SAHUMERIO DOS AROMAS NATURAL OLIBANO-PALO SANTO",cf:2291,may:1273},{code:"1760G",name:"SAHUMERIO DOS AROMAS NATURAL ROMERO-OLIBANO",cf:2291,may:1273},{code:"1760H",name:"SAHUMERIO DOS AROMAS NATURAL YAGRA-PALO SANTO",cf:2291,may:1273}]},
+{name:"DUO",products:[{code:"22",name:"SAHUMERIO 7 CHAKRAS",cf:2780,may:1555},{code:"22A",name:"SAHUMERIO DUO LIMPIEZA - ARMONIA",cf:2302,may:1279},{code:"22C",name:"SAHUMERIO DUO 7 PODERES - RENACER",cf:2302,may:1279},{code:"22D",name:"SAHUMERIO DUO SANACION- APERTURA",cf:2302,may:1279}]},
+{name:"Sahumerio en Polvo",products:[{code:"1980A",name:"SAHUMERIO EN POLVO SANDALO",cf:2795,may:1553},{code:"1980C",name:"SAHUMERIO EN POLVO PALO SANTO",cf:2795,may:1553},{code:"1980F",name:"SAHUMERIO EN POLVO ROSA",cf:2795,may:1553},{code:"1980G",name:"SAHUMERIO EN POLVO JAZMIN",cf:2795,may:1553},{code:"1980H",name:"SAHUMERIO EN POLVO CITRONELLA - NARANJA",cf:2795,may:1553},{code:"1980I",name:"SAHUMERIO EN POLVO VAINILLA -INCIENSO",cf:2795,may:1553},{code:"1980K",name:"SAHUMERIO EN POLVO BENJUI - ESTORAQUE",cf:2795,may:1553},{code:"1980L",name:"SAHUMERIO EN POLVO ALCANFOR",cf:2795,may:1553}]},
+{name:"Sagrada Madre X20",products:[{code:"320A",name:"SAHUMERIO SAGRADA MADRE LAVANDA X20",cf:4358,may:2421},{code:"320AA",name:"SAHUMERIO SAGRADA MADRE MAGNOLIAS X20",cf:4358,may:2421},{code:"320AC",name:"SAHUMERIO SAGRADA MADRE NARDO OLIBANO X20",cf:4358,may:2421},{code:"320AE",name:"SAHUMERIO SAGRADA MADRE PALO SANTO YAGRA X20",cf:4358,may:2421},{code:"320AF",name:"SAHUMERIO SAGRADA MADRE PALO SANTO PACHULI X20",cf:4358,may:2421},{code:"320AG",name:"SAHUMERIO SAGRADA MADRE PALO SANTO MIRRA X20",cf:4358,may:2421},{code:"320AH",name:"SAHUMERIO SAGRADA MADRE PALO SANTO SANDALO X20",cf:4358,may:2421},{code:"320AI",name:"SAHUMERIO SAGRADA MADRE PALO SANTO ROMERO X20",cf:4358,may:2421},{code:"320AJ",name:"SAHUMERIO SAGRADA MADRE PALO SANTO FRESIAS X20",cf:4358,may:2421},{code:"320AK",name:"SAHUMERIO SAGRADA MADRE PALO SANTO VIOLETA X20",cf:4358,may:2421},{code:"320AN",name:"SAHUMERIO SAGRADA MADRE CITRONELA DEL NORTE X20",cf:4358,may:2421},{code:"320B",name:"SAHUMERIO SAGRADA MADRE ROSA X20",cf:4358,may:2421},{code:"320C",name:"SAHUMERIO SAGRADA MADRE YAGRA X20",cf:4358,may:2421},{code:"320D",name:"SAHUMERIO SAGRADA MADRE SANDALO X20",cf:4358,may:2421},{code:"320E",name:"SAHUMERIO SAGRADA MADRE COPAL X20",cf:4358,may:2421},{code:"320F",name:"SAHUMERIO SAGRADA MADRE INCIENSO X20",cf:4358,may:2421},{code:"320I",name:"SAHUMERIO SAGRADA MADRE PALO SANTO X20",cf:4358,may:2421},{code:"320J",name:"SAHUMERIO SAGRADA MADRE PALO SANTO - VAINILLA X20",cf:4358,may:2421},{code:"320L",name:"SAHUMERIO SAGRADA MADRE PALO SANTO - ROSA X20",cf:4358,may:2421},{code:"320M",name:"SAHUMERIO SAGRADA MADRE PALO SANTO - JAZMIN X20",cf:4358,may:2421},{code:"320N",name:"SAHUMERIO SAGRADA MADRE PALO SANTO - LAVANDA X20",cf:4358,may:2421},{code:"320Q",name:"SAHUMERIO SAGRADA MADRE GARDENIAS - CALENDULA X20",cf:4358,may:2421},{code:"320R",name:"SAHUMERIO SAGRADA MADRE JAZMIN - ROSA X20",cf:4358,may:2421},{code:"320S",name:"SAHUMERIO SAGRADA MADRE LEMMON GRASS - OLIBANO X20",cf:4358,may:2421},{code:"320U",name:"SAHUMERIO SAGRADA MADRE SANGRE DE DRAGO X20",cf:4358,may:2421},{code:"320V",name:"SAHUMERIO SAGRADA MADRE PALO SANTO - JENGIBRE X20",cf:4358,may:2421}]},
+{name:"Artesano X30",products:[{code:"300A",name:"SAHUMERIO ARTESANO LAVANDA X30",cf:8586,may:4770},{code:"300AA",name:"SAHUMERIO ARTESANO MAGNOLIAS X30",cf:8586,may:4770},{code:"300AB",name:"SAHUMERIO ARTESANO CLAVO DE OLOR ROSAS X30",cf:8586,may:4770},{code:"300AC",name:"SAHUMERIO ARTESANO NARDO OLIBANO X30",cf:8586,may:4770},{code:"300AE",name:"SAHUMERIO ARTESANO PALO SANTO YAGRA X30",cf:8586,may:4770},{code:"300AM",name:"SAHUMERIO ARTESANO CITRONELA DEL NORTE X30",cf:8586,may:4770},{code:"300B",name:"SAHUMERIO ARTESANO ROSA X30",cf:8586,may:4770},{code:"300C",name:"SAHUMERIO ARTESANO YAGRA X30",cf:8586,may:4770},{code:"300D",name:"SAHUMERIO ARTESANO SANDALO X30",cf:8586,may:4770},{code:"300E",name:"SAHUMERIO ARTESANO COPAL X30",cf:8586,may:4770},{code:"300F",name:"SAHUMERIO ARTESANO INCIENSO X30",cf:8586,may:4770},{code:"300G",name:"SAHUMERIO ARTESANO RUDA - ROMERO - INCIENSO X30",cf:8586,may:4770},{code:"300H",name:"SAHUMERIO ARTESANO CITRONELLA - NARANJA - PS X30",cf:8586,may:4770},{code:"300I",name:"SAHUMERIO ARTESANO PALO SANTO X30",cf:8586,may:4770},{code:"300J",name:"SAHUMERIO ARTESANO PALO SANTO - VAINILLA X30",cf:8586,may:4770},{code:"300K",name:"SAHUMERIO ARTESANO PALO SANTO- CHAMPA X30",cf:8586,may:4770},{code:"300L",name:"SAHUMERIO ARTESANO PALO SANTO - ROSA X30",cf:8586,may:4770},{code:"300M",name:"SAHUMERIO ARTESANO PALO SANTO - JAZMIN X30",cf:8586,may:4770},{code:"300N",name:"SAHUMERIO ARTESANO PALO SANTO - LAVANDA X30",cf:8586,may:4770},{code:"300P",name:"SAHUMERIO ARTESANO TE VERDE - FLOR DE CHAMPA X30",cf:8586,may:4770},{code:"300Q",name:"SAHUMERIO ARTESANO GARDENIAS - CALENDULA X30",cf:8586,may:4770},{code:"300R",name:"SAHUMERIO ARTESANO JAZMIN - ROSA X30",cf:8586,may:4770},{code:"300S",name:"SAHUMERIO ARTESANO LEMMON GRASS - OLIBANO X30",cf:8586,may:4770},{code:"300T",name:"SAHUMERIO ARTESANO FLOR DEL ARBOL PARAISO X30",cf:8586,may:4770},{code:"300U",name:"SAHUMERIO ARTESANO SANGRE DE DRAGO X30",cf:8586,may:4770},{code:"300V",name:"SAHUMERIO ARTESANO PALO SANTO - JENGIBRE X30",cf:8586,may:4770},{code:"300W",name:"SAHUMERIO ARTESANO REINA DE LA NOCHE - LAVANDA X30",cf:8586,may:4770}]},
+{name:"Artesano X5",products:[{code:"350A",name:"ARTESANO X 5 INCIENSO (FRANKINCENSE)",cf:1580,may:878},{code:"350B",name:"ARTESANO X 5 PALO SANTO - FRESIAS",cf:1580,may:878},{code:"350C",name:"ARTESANO X 5 PALO SANTO - LAVANDA",cf:1580,may:878},{code:"350D",name:"ARTESANO X 5 PALO SANTO - RUDA",cf:1580,may:878},{code:"350E",name:"ARTESANO X 5 PALO SANTO",cf:1580,may:878},{code:"350F",name:"ARTESANO X 5 PALO SANTO-INCIENSO",cf:1580,may:878},{code:"350G",name:"ARTESANO X 5 PALO SANTO-PACHULI",cf:1580,may:878},{code:"350H",name:"ARTESANO X 5 PALO SANTO-SANDALO",cf:1580,may:878},{code:"350I",name:"ARTESANO X 5 PALO SANTO ROMERO",cf:1580,may:878},{code:"350K",name:"ARTESANO X 5 RUDA-ROMERO-INCIENSO",cf:1580,may:878},{code:"350L",name:"ARTESANO X 5 SANDALO",cf:1580,may:878},{code:"350M",name:"ARTESANO X 5 YAGRA",cf:1580,may:878}]},
+{name:"Cosmos",products:[{code:"1990A",name:"BOMBITAS COSMOS X 7",cf:4129,may:2294},{code:"1990B",name:"SAHUMERIO COSMOS X 7 PLANETAS",cf:2918,may:1621},{code:"1990C",name:"SAHUMERIOS COSMOS SOL",cf:2918,may:1621},{code:"1990D",name:"SAHUMERIOS COSMOS LUNA",cf:2918,may:1621},{code:"1990E",name:"SAHUMERIOS COSMOS MARTE",cf:2918,may:1621},{code:"1990F",name:"SAHUMERIOS COSMOS MERCURIO",cf:2918,may:1621},{code:"1990G",name:"SAHUMERIOS COSMOS JUPITER",cf:2918,may:1621},{code:"1990H",name:"SAHUMERIOS COSMOS VENUS",cf:2918,may:1621},{code:"1990I",name:"SAHUMERIOS COSMOS SATURNO",cf:2918,may:1621}]},
+{name:"7 Chakras",products:[{code:"1795A",name:"TAO BOMBITAS 7 CHAKRAS",cf:924,may:513},{code:"1795B",name:"TAO SAHUMERIO 7 CHAKRAS",cf:1147,may:637},{code:"50B",name:"BOMBITAS 7 CHAKRAS",cf:1764,may:980}]},
+{name:"7 Poderes",products:[{code:"1815A",name:"SAHUMERIO TAO 7 PODERES",cf:1123,may:624},{code:"1815B",name:"PASTILLA TAO 7 PODERES",cf:1008,may:560},{code:"44F",name:"PASTILLA 7 PODERES X7 UN.",cf:1836,may:1020}]},
+{name:"Garden Citronela",products:[{code:"34A",name:"SAHUMERIO GARDEN CITRONELA ROSAS",cf:2659,may:1477},{code:"34B",name:"SAHUMERIO GARDEN CITRONELA LAVANDA",cf:2659,may:1477},{code:"34C",name:"SAHUMERIO GARDEN CITRONELA JAZMIN",cf:2659,may:1477},{code:"34D",name:"SAHUMERIO GARDEN CITRONELA LIMON",cf:2659,may:1477},{code:"34E",name:"SAHUMERIO GARDEN CITRONELA LIRIOS ROJOS",cf:2659,may:1477},{code:"34F",name:"SAHUMERIO GARDEN CITRONELA MANGO",cf:2659,may:1477},{code:"34G",name:"SAHUMERIO GARDEN CITRONELA PACHULI",cf:2659,may:1477},{code:"34H",name:"SAHUMERIO GARDEN CITRONELA NARANJA PIMIENTA",cf:2659,may:1477},{code:"34I",name:"SAHUMERIO GARDEN CITRONELA POMELO",cf:2659,may:1477},{code:"34J",name:"SAHUMERIO GARDEN CITRONELA PURA",cf:2659,may:1477}]},
+{name:"TAO Perfum Premium",products:[{code:"1809A",name:"SAHUMERIO TAO PERFUM PREMIUM REAL CHAMPA",cf:3263,may:1813},{code:"1809AA",name:"SAHUMERIO TAO PERFUM PREMIUM AURA FLORAL",cf:3263,may:1813},{code:"1809AB",name:"SAHUMERIO TAO PERFUM PREMIUM BOSQUE DE BAMBU",cf:3263,may:1813},{code:"1809AC",name:"SAHUMERIO TAO PERFUM PREMIUM AMOR",cf:3263,may:1813},{code:"1809AD",name:"SAHUMERIO TAO PERFUM PREMIUM BLEND ORIENTAL",cf:3263,may:1813},{code:"1809AE",name:"SAHUMERIO TAO PERFUM PREMIUM FLOR IMPERIAL",cf:3263,may:1813},{code:"1809AF",name:"SAHUMERIO TAO PERFUM PREMIUM AQUA FLORENTINA",cf:3263,may:1813},{code:"1809AG",name:"SAHUMERIO TAO PERFUM PREMIUM JARDIN SECRETO",cf:3263,may:1813},{code:"1809AH",name:"SAHUMERIO TAO PERFUM PREMIUM LIRIO REAL",cf:3263,may:1813},{code:"1809AI",name:"SAHUMERIO TAO PERFUM PREMIUM VAINILLA NEGRA",cf:3263,may:1813},{code:"1809AJ",name:"SAHUMERIO TAO PERFUM PREMIUM BOSQUE CALIDO",cf:3263,may:1813},{code:"1809B",name:"SAHUMERIO TAO PERFUM PREMIUM NECTAR CELESTIAL",cf:3263,may:1813},{code:"1809C",name:"SAHUMERIO TAO PERFUM PREMIUM SANDALO HINDU",cf:3263,may:1813},{code:"1809D",name:"SAHUMERIO TAO PERFUM PREMIUM LIMON",cf:3263,may:1813},{code:"1809E",name:"SAHUMERIO TAO PERFUM PREMIUM BLACK DIAMOND",cf:3263,may:1813},{code:"1809F",name:"SAHUMERIO TAO PERFUM PREMIUM SPICY NARANJA",cf:3263,may:1813},{code:"1809G",name:"SAHUMERIO TAO PERFUM PREMIUM JARDIN DE LAVANDA",cf:3263,may:1813},{code:"1809H",name:"SAHUMERIO TAO PERFUM PREMIUM BRISA FLOREAL",cf:3263,may:1813},{code:"1809I",name:"SAHUMERIO TAO PERFUM PREMIUM YAGRA HINDU",cf:3263,may:1813},{code:"1809J",name:"SAHUMERIO TAO PERFUM PREMIUM ENERGIA LIMPIA",cf:3263,may:1813},{code:"1809K",name:"SAHUMERIO TAO PERFUM PREMIUM DULCE FRUTILLA",cf:3263,may:1813},{code:"1809L",name:"SAHUMERIO TAO PERFUM PREMIUM VAINILLA MISTICA",cf:3263,may:1813},{code:"1809M",name:"SAHUMERIO TAO PERFUM PREMIUM CANELA DULCE",cf:3263,may:1813},{code:"1809N",name:"SAHUMERIO TAO PERFUM PREMIUM DIVINA PERLA",cf:3263,may:1813},{code:"1809O",name:"SAHUMERIO TAO PERFUM PREMIUM ENCANTO FLORAL",cf:3263,may:1813},{code:"1809P",name:"SAHUMERIO TAO PERFUM PREMIUM FLORES DE ASIA",cf:3263,may:1813},{code:"1809Q",name:"SAHUMERIO TAO PERFUM PREMIUM BELLEZA DORADA",cf:3263,may:1813},{code:"1809R",name:"SAHUMERIO TAO PERFUM PREMIUM JARDIN DE FRESIAS",cf:3263,may:1813},{code:"1809S",name:"SAHUMERIO TAO PERFUM PREMIUM LUMINOSA",cf:3263,may:1813},{code:"1809T",name:"SAHUMERIO TAO PERFUM PREMIUM MIRRA ENCANTADA",cf:3263,may:1813},{code:"1809U",name:"SAHUMERIO TAO PERFUM PREMIUM AZUL MISTICO",cf:3263,may:1813},{code:"1809V",name:"SAHUMERIO TAO PERFUM PREMIUM PISTACHO CHOCOLATE",cf:3263,may:1813},{code:"1809W",name:"SAHUMERIO TAO PERFUM PREMIUM ROSA MOSQUETA",cf:3263,may:1813},{code:"1809X",name:"SAHUMERIO TAO PERFUM PREMIUM SANDALO",cf:3263,may:1813},{code:"1809Y",name:"SAHUMERIO TAO PERFUM PREMIUM DULCE CACAO",cf:3263,may:1813},{code:"1809Z",name:"SAHUMERIO TAO PERFUM PREMIUM BRISA MARINA",cf:3263,may:1813}]},
+{name:"TAO Natural",products:[{code:"1800A",name:"SAHUMERIO TAO NATURAL PALO SANTO BENJUI",cf:1037,may:576},{code:"1800B",name:"SAHUMERIO TAO NATURAL PALO SANTO RATNAMALA",cf:1037,may:576},{code:"1800C",name:"SAHUMERIO TAO NATURAL PALO SANTO REINA DE LA NOCHE",cf:1037,may:576},{code:"1800D",name:"SAHUMERIO TAO NATURAL PALO SANTO ROSA MOSQUETA",cf:1037,may:576},{code:"1800E",name:"SAHUMERIO TAO NATURAL 7 PODERES",cf:1037,may:576},{code:"1800F",name:"SAHUMERIO TAO NATURAL LIMPIEZA ENERGATICA",cf:1037,may:576},{code:"1800G",name:"SAHUMERIO TAO NATURAL SANDALO",cf:1037,may:576},{code:"1800H",name:"SAHUMERIO TAO NATURAL LAVANDA",cf:1037,may:576},{code:"1800I",name:"SAHUMERIO TAO NATURAL ROSA",cf:1037,may:576},{code:"1800J",name:"SAHUMERIO TAO NATURAL JAZMIN",cf:1037,may:576},{code:"1800K",name:"SAHUMERIO TAO NATURAL CITRONELA",cf:1037,may:576},{code:"1900C",name:"SAHUMERIO TAO COMBINADO ROSA - PALO SANTO RATNMALA",cf:1037,may:576},{code:"1900E",name:"SAHUMERIO TAO COMBINADO 7 PODERES - LAVANDA",cf:1037,may:576}]},
+{name:"TAO Citronela",products:[{code:"1820A",name:"TAO CITRONELA BOMBA ANTI MOSQUITO",cf:1062,may:590},{code:"1820B",name:"TAO CITRONELA PASTILLAS ANTI MOSQUITO",cf:967,may:537},{code:"1820C",name:"TAO CITRONELA CONOS ANTI MOSQUITO",cf:1292,may:718},{code:"1820D",name:"TAO CITRONELA POLVO ANTI MOSQUITO",cf:1790,may:994}]},
+{name:"TAO Triple Empaste X10",products:[{code:"1840A",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 SANDALO",cf:801,may:445},{code:"1840B",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 JAZMIN",cf:801,may:445},{code:"1840C",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 VAINILLA",cf:801,may:445},{code:"1840D",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 INCIENSO",cf:801,may:445},{code:"1840E",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 GARDENIAS",cf:801,may:445},{code:"1840F",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 MADERA DE ORIENTE",cf:801,may:445},{code:"1840G",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 FRUTILLA",cf:801,may:445},{code:"1840H",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 LAVANDA",cf:801,may:445},{code:"1840I",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 MIRRA",cf:801,may:445},{code:"1840J",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 MIL FLORES",cf:801,may:445},{code:"1840K",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 VARIEDAD",cf:801,may:445},{code:"1840L",name:"SAHUMERIO TAO TRIPLE EMPASTE X 10 FLORES SILVESTRES",cf:801,may:445}]},
+{name:"TAO X15",products:[{code:"1845A",name:"SAHUMERIO TAO X 15 SANDALO",cf:842,may:468},{code:"1845B",name:"SAHUMERIO TAO X 15 JAZMIN",cf:842,may:468},{code:"1845C",name:"SAHUMERIO TAO X 15 VAINILLA",cf:842,may:468},{code:"1845D",name:"SAHUMERIO TAO X 15 INCIENSO",cf:842,may:468},{code:"1845E",name:"SAHUMERIO TAO X 15 GARDENIAS",cf:842,may:468},{code:"1845F",name:"SAHUMERIO TAO X 15 MADERA DE ORIENTE",cf:842,may:468},{code:"1845G",name:"SAHUMERIO TAO X 15 FRUTILLA",cf:842,may:468},{code:"1845H",name:"SAHUMERIO TAO X 15 LAVANDA",cf:842,may:468},{code:"1845I",name:"SAHUMERIO TAO X 15 MIRRA",cf:842,may:468},{code:"1845J",name:"SAHUMERIO TAO X 15 MIL FLORES",cf:842,may:468},{code:"1845K",name:"SAHUMERIO TAO X 15 VARIEDAD",cf:842,may:468},{code:"1845L",name:"SAHUMERIO TAO X 15 FLORES SILVESTRES",cf:842,may:468}]},
+{name:"TAO Triple Empaste X30",products:[{code:"1855A",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 CHAMPA",cf:1944,may:1080},{code:"1855B",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 FLORES SILVESTRES",cf:1944,may:1080},{code:"1855C",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 FRUTILLA",cf:1944,may:1080},{code:"1855D",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 GARDENIAS",cf:1944,may:1080},{code:"1855E",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 OLIBANO",cf:1944,may:1080},{code:"1855F",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 JAZMIN",cf:1944,may:1080},{code:"1855G",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 LAVANDA",cf:1944,may:1080},{code:"1855H",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 LIMON",cf:1944,may:1080},{code:"1855I",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 MADERA DE ORIENTE",cf:1944,may:1080},{code:"1855J",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 MIL FLORES",cf:1944,may:1080},{code:"1855K",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 MIRRA",cf:1944,may:1080},{code:"1855L",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 NARANJA PIMIENTA",cf:1944,may:1080},{code:"1855M",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 PALO SANTO",cf:1944,may:1080},{code:"1855N",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 SANDALO",cf:1944,may:1080},{code:"1855O",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 VAINILLA",cf:1944,may:1080},{code:"1855P",name:"SAHUMERIO TAO TRIPLE EMPASTE X 30 VARIEDAD",cf:1944,may:1080}]},
+{name:"TAO Difusores",products:[{code:"1850A",name:"DIFUSOR TAO BAMBOO BULTO X 12",cf:71647,may:39804},{code:"1850B",name:"DIFUSOR TAO CITRUS BULTO X 12",cf:71647,may:39804},{code:"1850C",name:"DIFUSOR TAO COCO - VAINILLA BULTO X 12",cf:71647,may:39804},{code:"1850D",name:"DIFUSOR TAO ROSA BULGARA BULTO X 12",cf:71647,may:39804},{code:"1850E",name:"DIFUSOR TAO FLORES BLANCAS BULTO X 12",cf:71647,may:39804},{code:"1850F",name:"DIFUSOR TAO FLORES BULTO X 12",cf:71647,may:39804},{code:"1850G",name:"DIFUSOR TAO FRUTOS PATAGONICOS BULTO X 12",cf:71647,may:39804},{code:"1850H",name:"DIFUSOR TAO LIMON BULTO X 12",cf:71647,may:39804},{code:"1850I",name:"DIFUSOR TAO MIL FLORES BULTO X 12",cf:71647,may:39804},{code:"1850J",name:"DIFUSOR TAO GERANIO BULTO X 12",cf:71647,may:39804},{code:"1851A",name:"DIFUSOR TAO PERFUM DIAMANTE NEGRO BULTO X12",cf:77022,may:42790},{code:"1851B",name:"DIFUSOR TAO PERFUM NECTAR CELESTIAL BULTO X12",cf:77022,may:42790},{code:"1851C",name:"DIFUSOR TAO PERFUM SANDALO HINDU BULTO X12",cf:77022,may:42790},{code:"1851D",name:"DIFUSOR TAO PERFUM VAINILLA MISTICA BULTO X12",cf:77022,may:42790},{code:"1851E",name:"DIFUSOR TAO PERFUM LIMON PREMIUM BULTO X12",cf:77022,may:42790},{code:"1851F",name:"DIFUSOR TAO PERFUM CHAMPA REAL BULTO X12",cf:77022,may:42790},{code:"1851G",name:"DIFUSOR TAO PERFUM FRUTILLA DULCE BULTO X12",cf:77022,may:42790},{code:"1851H",name:"DIFUSOR TAO PERFUM YAGRA HINDU BULTO X12",cf:77022,may:42790}]},
+{name:"TAO Textil",products:[{code:"1852A",name:"TAO TEXTIL BAMBOO BULTO X 12",cf:50467,may:28037},{code:"1852B",name:"TAO TEXTIL FLORES DE AZAHAR BULTO X 12",cf:50467,may:28037},{code:"1852C",name:"TAO TEXTIL JAZMIN BULTO X 12",cf:50467,may:28037},{code:"1852D",name:"TAO TEXTIL CITRUS BULTO X 12",cf:50467,may:28037},{code:"1852E",name:"TAO TEXTIL COCO - VAINILLA BULTO X 12",cf:50467,may:28037},{code:"1852F",name:"TAO TEXTIL ROSA BULGARA BULTO X 12",cf:50467,may:28037},{code:"1852G",name:"TAO TEXTIL FLORES BLANCAS BULTO X 12",cf:50467,may:28037},{code:"1852H",name:"TAO TEXTIL LIMON BULTO X 12",cf:50467,may:28037},{code:"1852I",name:"TAO TEXTIL MIL FLORES BULTO X 12",cf:50467,may:28037},{code:"1852J",name:"TAO TEXTIL GERANIO BULTO X 12",cf:50467,may:28037}]},
+{name:"Natural Premium Hierbas",products:[{code:"1871A",name:"NATURAL PREMIUM OLIBANO CAJA X 6",cf:1310,may:728},{code:"1871B",name:"NATURAL PREMIUM PALO SANTO FRESISAS CAJA X 6",cf:1310,may:728},{code:"1871C",name:"NATURAL PREMIUM PALO SANTO OLIBANO CAJA X 6",cf:1310,may:728},{code:"1871D",name:"NATURAL PREMIUM PALO SANTO PACHULI CAJA X 6",cf:1310,may:728},{code:"1871E",name:"NATURAL PREMIUM PALO SANTO ROMERO CAJA X 6",cf:1310,may:728},{code:"1871F",name:"NATURAL PREMIUM PALO SANTO RUDA CAJA X 6",cf:1310,may:728},{code:"1871G",name:"NATURAL PREMIUM PALO SANTO SANDALO CAJA X 6",cf:1310,may:728},{code:"1871H",name:"NATURAL PREMIUM RUDA ROMERO OLIBANO CAJA X 6",cf:1310,may:728},{code:"1871I",name:"NATURAL PREMIUM SANDALO CAJA X 6",cf:1310,may:728},{code:"1871J",name:"NATURAL PREMIUM YAGRA CAJA X 6",cf:1310,may:728}]},
+{name:"Natural Premium Aromático",products:[{code:"1872A",name:"NATURAL PREMIUM FRUTILLA CAJA X 6",cf:2659,may:1477},{code:"1872B",name:"NATURAL PREMIUM JAZMIN CAJA X 6",cf:2659,may:1477},{code:"1872C",name:"NATURAL PREMIUM LAVANDA CAJA X 6",cf:2659,may:1477},{code:"1872D",name:"NATURAL PREMIUM LIMON CAJA X 6",cf:2659,may:1477},{code:"1872E",name:"NATURAL PREMIUM MANGO CAJA X 6",cf:2659,may:1477},{code:"1872F",name:"NATURAL PREMIUM MELON CAJA X 6",cf:2659,may:1477},{code:"1872G",name:"NATURAL PREMIUM NARANJA CAJA X 6",cf:2659,may:1477},{code:"1872H",name:"NATURAL PREMIUM POMELO ROSADO CAJA X 6",cf:2659,may:1477},{code:"1872I",name:"NATURAL PREMIUM SANDIA CAJA X 6",cf:2659,may:1477},{code:"1872J",name:"NATURAL PREMIUM UVA CAJA X 6",cf:2659,may:1477}]},
+{name:"Natural Premium Slim",products:[{code:"1873A",name:"SAHUMERIO NATURAL PREMIUM SLIM FRUTILLA X10",cf:1138,may:632},{code:"1873B",name:"SAHUMERIO NATURAL PREMIUM SLIM JAZMIN X10",cf:1138,may:632},{code:"1873C",name:"SAHUMERIO NATURAL PREMIUM SLIM LAVANDA X10",cf:1138,may:632},{code:"1873D",name:"SAHUMERIO NATURAL PREMIUM SLIM LIMON X10",cf:1138,may:632},{code:"1873E",name:"SAHUMERIO NATURAL PREMIUM SLIM MANGO X10",cf:1138,may:632},{code:"1873F",name:"SAHUMERIO NATURAL PREMIUM SLIM MELON X10",cf:1138,may:632},{code:"1873G",name:"SAHUMERIO NATURAL PREMIUM SLIM NARANJA X10",cf:1138,may:632},{code:"1873H",name:"SAHUMERIO NATURAL PREMIUM SLIM POMELO X10",cf:1138,may:632},{code:"1873I",name:"SAHUMERIO NATURAL PREMIUM SLIM SANDIA X10",cf:1138,may:632},{code:"1873J",name:"SAHUMERIO NATURAL PREMIUM SLIM UVA X10",cf:1138,may:632}]},
+{name:"Bombitas X4 Bolsita",products:[{code:"4702",name:"BOMBITA X4 7 PODERES",cf:821,may:456},{code:"4702A",name:"BOMBITA X4 ATRAE DINERO",cf:821,may:456},{code:"4702B",name:"BOMBITA X4 ABRECAMINO",cf:821,may:456},{code:"4702C",name:"BOMBITA X4 PALO SANTO",cf:821,may:456},{code:"4702D",name:"BOMBITA X4 DESTRABE",cf:821,may:456},{code:"4702E",name:"BOMBITA X4 LIMPIEZA ENERGETICA",cf:821,may:456},{code:"4702G",name:"BOMBITA X4 DEFUMACION COMPLETA",cf:821,may:456},{code:"4702H",name:"BOMBITA X4 DEFUMACION 7 HIERBAS + COPAL",cf:821,may:456},{code:"4702I",name:"BOMBITA X4 ABUNDANCIA INFINITA",cf:821,may:456},{code:"4702J",name:"BOMBITA X4 ATRACCION MISTICA",cf:821,may:456},{code:"4702K",name:"BOMBITA X4 FUERZA INFINITA",cf:821,may:456},{code:"4702L",name:"BOMBITA X4 LIMPIEZA AURICA",cf:821,may:456}]},
+{name:"Bombitas X4 Bolsita Bulto x100",products:[{code:"B4702",name:"BULTO X 100 BOMBITA X4 7 PODERES",cf:71026,may:39459},{code:"B4702A",name:"BULTO X 100 BOMBITA X4 ATRAE DINERO",cf:71026,may:39459},{code:"B4702B",name:"BULTO X 100 BOMBITA X4 ABRECAMINO",cf:71026,may:39459},{code:"B4702C",name:"BULTO X 100 BOMBITA X4 PALO SANTO",cf:71026,may:39459},{code:"B4702D",name:"BULTO X 100 BOMBITA X4 DESTRABE",cf:71026,may:39459},{code:"B4702E",name:"BULTO X 100 BOMBITA X4 LIMPIEZA ENERGETICA",cf:71026,may:39459},{code:"B4702G",name:"BULTO X 100 BOMBITA X4 DEFUMACION COMPLETA",cf:71026,may:39459},{code:"B4702H",name:"BULTO X 100 BOMBITA X4 DEFUMACION 7 HIERBAS + COPAL",cf:71026,may:39459},{code:"B4702I",name:"BULTO X 100 BOMBITA X4 ABUNDANCIA INFINITA",cf:71026,may:39459},{code:"B4702J",name:"BULTO X 100 BOMBITA X4 ATRACCION MISTICA",cf:71026,may:39459},{code:"B4702K",name:"BULTO X 100 BOMBITA X4 FUERZA INFINITA",cf:71026,may:39459},{code:"B4702L",name:"BULTO X 100 BOMBITA X4 LIMPIEZA AURICA",cf:71026,may:39459}]},
+{name:"Bombita Herbal X4",products:[{code:"4801",name:"BOMBITA HERBAL X4 ARMONIA",cf:1188,may:660},{code:"4802",name:"BOMBITA HERBAL X4 RENACER",cf:1188,may:660},{code:"4803",name:"BOMBITA HERBAL X4 DESTRABAR",cf:1188,may:660},{code:"4804",name:"BOMBITA HERBAL X4 FORTUNA",cf:1188,may:660},{code:"4805",name:"BOMBITA HERBAL X4 AMOR",cf:1188,may:660},{code:"4806",name:"BOMBITA HERBAL X4 PURIFICAR",cf:1188,may:660},{code:"4807",name:"BOMBITA HERBAL X4 PROTECCION",cf:1188,may:660},{code:"4808",name:"BOMBITA HERBAL X4 7 PODERES",cf:1188,may:660}]},
+{name:"Bombita Herbal Bolsita",products:[{code:"4900C",name:"BOMBITA HERBAL BOLSITA X4 ENERGIA POSITIVA",cf:866,may:481},{code:"4900D",name:"BOMBITA HERBAL BOLSITA X4 FORTUNA",cf:866,may:481},{code:"4900F",name:"BOMBITA HERBAL BOLSITA X4 PURIFICAR",cf:866,may:481},{code:"4900H",name:"BOMBITA HERBAL BOLSITA X4 4 PODERES",cf:866,may:481}]},
+{name:"Bombitas X8",products:[{code:"48",name:"CAJAX8 BOMBITA 7 ELEMENTOS PUROS",cf:2018,may:1121},{code:"48A",name:"CAJAX8 BOMBITA YAGRA-CANELA",cf:2018,may:1121},{code:"48B",name:"CAJAX8 BOMBITA INCIENSO-MIRRA",cf:2018,may:1121},{code:"48C",name:"CAJAX8 BOMBITA PALO SANTO",cf:2018,may:1121},{code:"48D",name:"CAJAX8 BOMBITA BENJUI-INCIENSO",cf:2018,may:1121},{code:"48E",name:"CAJAX8 BOMBITA LIMPIEZA ENERGETICA",cf:2018,may:1121},{code:"48F",name:"CAJAX8 BOMBITA ESTORAQUE-ALCANFOR",cf:2018,may:1121},{code:"48G",name:"CAJAX8 BOMBITA 7 HIERBAS COPAL",cf:2018,may:1121}]},
+{name:"Bombita Premium",products:[{code:"4710F",name:"BOMBITA PREMIUM OLIBANO - CANELA",cf:2018,may:1121}]},
+{name:"Bombitas X25",products:[{code:"400A",name:"BOMBITA X25 7 PODERES",cf:4072,may:2262},{code:"400B",name:"BOMBITA X25 ATRAE DINERO",cf:4072,may:2262},{code:"400C",name:"BOMBITA X25 ABRECAMINO",cf:4072,may:2262},{code:"400D",name:"BOMBITA X25 PALO SANTO",cf:4072,may:2262},{code:"400E",name:"BOMBITA X25 DESTRABE",cf:4072,may:2262},{code:"400F",name:"BOMBITA X25 LIMPIEZA ENERGETICA",cf:4072,may:2262},{code:"400G",name:"BOMBITA X25 DEFUMACION COMPLETA",cf:4072,may:2262},{code:"400H",name:"BOMBITA X25 DEFUMACION 7 HIERBAS + COPAL",cf:4072,may:2262},{code:"400I",name:"BOMBITA X25 ABUNDANCIA INFINITA",cf:4072,may:2262},{code:"400J",name:"BOMBITA X25 ATRACCION MISTICA",cf:4072,may:2262},{code:"400K",name:"BOMBITA X25 FUERZA INFINITA",cf:4072,may:2262},{code:"400L",name:"BOMBITA X25 LIMPIEZA AURICA",cf:4072,may:2262}]},
+{name:"Bombitas X4 Caja",products:[{code:"4720",name:"CAJAX4 BOMBITA 7 PODERES",cf:1129,may:627},{code:"4720A",name:"CAJAX4 BOMBITA ATRAE DINERO",cf:1129,may:627},{code:"4720B",name:"CAJAX4 BOMBITA ABRECAMINO",cf:1129,may:627},{code:"4720C",name:"CAJAX4 BOMBITA PALO SANTO",cf:1129,may:627},{code:"4720D",name:"CAJAX4 BOMBITA DESTRABE",cf:1129,may:627},{code:"4720E",name:"CAJAX4 BOMBITA LIMPIEZA ENERGETICA",cf:1129,may:627},{code:"4720G",name:"CAJAX4 BOMBITA DEFUMACION COMPLETA",cf:1129,may:627},{code:"4720H",name:"CAJAX4 BOMBITA DEFUMACION 7 HIERBAS + COPAL",cf:1129,may:627}]},
+{name:"Bombitas X4 Caja Bulto x100",products:[{code:"B4720",name:"BULTO X 100 CAJAX4 BOMBITA 7 PODERES",cf:93746,may:52081},{code:"B4720A",name:"BULTO X 100 CAJAX4 BOMBITA ATRAE DINERO",cf:93746,may:52081},{code:"B4720B",name:"BULTO X 100 CAJAX4 BOMBITA ABRECAMINO",cf:93746,may:52081},{code:"B4720C",name:"BULTO X 100 CAJAX4 BOMBITA PALO SANTO",cf:93746,may:52081},{code:"B4720D",name:"BULTO X 100 CAJAX4 BOMBITA DESTRABE",cf:93746,may:52081},{code:"B4720E",name:"BULTO X 100 CAJAX4 BOMBITA LIMPIEZA ENERGETICA",cf:93746,may:52081},{code:"B4720G",name:"BULTO X 100 CAJAX4 BOMBITA DEFUMACION COMPLETA",cf:93746,may:52081}]},
+{name:"Pastillas",products:[{code:"44",name:"PASTILLA X4 INCIENSO",cf:2434,may:1352},{code:"44A",name:"PASTILLA X4 RUDA",cf:2434,may:1352},{code:"44B",name:"PASTILLA X4 ANIS CANELA Y ROMERO",cf:2434,may:1352},{code:"44C",name:"PASTILLA X4 PALO SANTO",cf:2434,may:1352},{code:"44D",name:"PASTILLA X4 SALVIA BLANCA",cf:2434,may:1352},{code:"44E",name:"PASTILLA X4 LAVANDA",cf:2434,may:1352}]},
+{name:"Pastillas 7 Días",products:[{code:"50C",name:"PASTILLAS 7 DIAS DE LIMPIEZA SURTIDAS",cf:2480,may:1378},{code:"50C1",name:"PASTILLAS 7 DIAS DE LIMPIEZA ROSA-LAVANDA",cf:2480,may:1378},{code:"50C2",name:"PASTILLAS 7 DIAS DE LIMPIEZA MIRRA-BENJUI",cf:2480,may:1378},{code:"50C3",name:"PASTILLAS 7 DIAS DE LIMPIEZA COPAL-VAINILLA",cf:2480,may:1378},{code:"50C4",name:"PASTILLAS 7 DIAS DE LIMPIEZA SANDALO-YAGRA",cf:2480,may:1378},{code:"50C5",name:"PASTILLAS 7 DIAS DE LIMPIEZA INCIENSO-SANDALO",cf:2480,may:1378}]},
+{name:"Pirámides",products:[{code:"45",name:"PIRAMIDE ENERGETICA X4 YAGRA E INCIENSO",cf:3411,may:1895},{code:"45A",name:"PIRAMIDE ENERGETICA X4 ROMERO OLIBANO",cf:3411,may:1895},{code:"45B",name:"PIRAMIDE ENERGETICA X4 CANELA OLIBANO",cf:3411,may:1895},{code:"45C",name:"PIRAMIDE ENERGETICA X4 MANZANILLA OLIBANO",cf:3411,may:1895},{code:"45D",name:"PIRAMIDE ENERGETICA X4 7 HIERBAS OLIBANO",cf:3411,may:1895},{code:"45E",name:"PIRAMIDE ENERGETICA X4 OLIBANO PURO",cf:3411,may:1895},{code:"45F",name:"PIRAMIDE ENERGETICA X4 ROSA",cf:3411,may:1895},{code:"45G",name:"PIRAMIDE ENERGETICA X4 4 PODERES",cf:3411,may:1895},{code:"45H",name:"PIRAMIDE ENERGETICA X4 CITRONELLA - CALENDULA - RUDA",cf:3411,may:1895}]},
+{name:"Kits",products:[{code:"50",name:"KIT LIMPIEZA ENERGETICA",cf:11887,may:6604},{code:"50A",name:"KIT PETALOS DE AMOR",cf:14354,may:7974},{code:"50D",name:"KIT HERBAL RELAJACION Y ARMONIA",cf:8008,may:4449},{code:"50E",name:"KIT HERBAL PROSPERIDAD",cf:8008,may:4449},{code:"50F",name:"KIT HERBAL PROTECCION Y SANACION",cf:8008,may:4449},{code:"50G",name:"KIT HERBAL PURIFICACION",cf:8008,may:4449},{code:"50H",name:"KIT LUZ",cf:29657,may:16476},{code:"50I",name:"KIT TURMALINA PROTECCION",cf:18018,may:10010}]},
+{name:"Mix Defumación",products:[{code:"50J",name:"MIX DEFUMACION ACTIVADA X25",cf:3758,may:2088}]},
+{name:"Humito Sagrado",products:[{code:"55A",name:"KIT HUMITO SAGRADO ARMONIA",cf:2378,may:1321},{code:"55B",name:"KIT HUMITO SAGRADO ENERGIA LIMPIA",cf:2378,may:1321},{code:"55C",name:"KIT HUMITO SAGRADO AMOR Y UNION",cf:2378,may:1321},{code:"55D",name:"KIT HUMITO SAGRADO PROTECCION",cf:2378,may:1321},{code:"55E",name:"KIT HUMITO SAGRADO PROSPERIDAD",cf:2378,may:1321},{code:"55F",name:"KIT HUMITO SAGRADO PURIFICACION",cf:2378,may:1321},{code:"55G",name:"KIT HUMITO SAGRADO 7 ENERGIAS",cf:2378,may:1321}]},
+{name:"Sahumos",products:[{code:"008D",name:"SAHUMO DE ESTACION",cf:1350,may:750},{code:"008F",name:"SAHUMO CHICO LIMPIEZA ENERGETICA",cf:2023,may:1124},{code:"008G",name:"SAHUMO DE LAVANDA",cf:4601,may:2556},{code:"008H",name:"SAHUMO DE SANDALO Y AROMATICAS",cf:2232,may:1240},{code:"008L",name:"SAHUMO BLANCO",cf:1879,may:1044},{code:"008M",name:"SAHUMO DE COPAL",cf:2286,may:1270},{code:"008N",name:"SAHUMO DE MIRRA Y PALO SANTO",cf:2286,may:1270},{code:"008P",name:"SAHUMO DE SALVIA Y ARMOMATICAS",cf:2286,may:1270},{code:"008Q",name:"SAHUMO DE ROMERO Y AROMATICAS",cf:2383,may:1324},{code:"008R",name:"SAHUMO LIMPIEZA ENERGETICA GRANDE",cf:3240,may:1800},{code:"008S",name:"SAHUMO 7 HIERBAS GRANDE",cf:3395,may:1886}]},
+{name:"Sahumitos Caja X5",products:[{code:"011A",name:"SAHUMITOS CAJA X5 INCIENSO ( OLIBANO )",cf:8539,may:4744},{code:"011B",name:"SAHUMITOS CAJA X5 PALO SANTO",cf:8539,may:4744},{code:"011C",name:"SAHUMITOS CAJA X5 RUDA",cf:8539,may:4744},{code:"011D",name:"SAHUMITOS CAJA X5 BLANCO YAGRA",cf:8539,may:4744},{code:"011E",name:"SAHUMITOS CAJA X5 CANELA ANIS",cf:8539,may:4744},{code:"011F",name:"SAHUMITOS CAJA X5 SANDALO",cf:8539,may:4744},{code:"011I",name:"SAHUMITOS CAJA X5 ROMERO",cf:8539,may:4744},{code:"011J",name:"SAHUMITOS CAJA X5 NARANJA CITRONELLA",cf:8539,may:4744},{code:"011K",name:"SAHUMITOS CAJA X5 SALVIA BLANCA",cf:8539,may:4744},{code:"011L",name:"SAHUMITOS CAJA X5 COPAL",cf:8539,may:4744},{code:"011M",name:"SAHUMITOS CAJA X5 MIRRA PALO SANTO",cf:8539,may:4744},{code:"011N",name:"SAHUMITOS CAJA X5 CALENDULA MANZANILLA",cf:8539,may:4744},{code:"011O",name:"SAHUMITOS CAJA X5 ESTORAQUE ALCANFOR",cf:8539,may:4744},{code:"011P",name:"SAHUMITOS CAJA X5 7 HIERBAS",cf:8539,may:4744},{code:"120C",name:"PERLAS AROMATICAS BOLSITA X12 JAZMIN",cf:40775,may:22653},{code:"12A",name:"SAHUMITOS SURTIDOS X5 RESINAS Y ESPECIAS",cf:8539,may:4744},{code:"12B",name:"SAHUMITOS SURTIDOS X5 FLORES Y AROMATICAS",cf:8539,may:4744},{code:"12C",name:"SAHUMITOS SURTIDOS X5 HIERBAS Y MADERAS",cf:8539,may:4744}]},
+{name:"Sahumitos X Unidad",products:[{code:"111A",name:"SAHUMITOS X UNIDAD INCIENSO ( OLIBANO )",cf:2063,may:1146},{code:"111B",name:"SAHUMITOS X UNIDAD PALO SANTO",cf:2063,may:1146},{code:"111C",name:"SAHUMITOS X UNIDAD RUDA",cf:2063,may:1146},{code:"111D",name:"SAHUMITOS X UNIDAD BLANCO YAGRA",cf:2063,may:1146},{code:"111E",name:"SAHUMITOS X UNIDAD CANELA ANIS",cf:2063,may:1146},{code:"111F",name:"SAHUMITOS X UNIDAD SANDALO",cf:2063,may:1146},{code:"111I",name:"SAHUMITOS X UNIDAD ROMERO",cf:2063,may:1146},{code:"111J",name:"SAHUMITOS X UNIDAD NARANJA CITRONELLA",cf:2063,may:1146},{code:"111K",name:"SAHUMITOS X UNIDAD SALVIA BLANCA",cf:2063,may:1146},{code:"111L",name:"SAHUMITOS X UNIDAD COPAL",cf:2063,may:1146},{code:"111M",name:"SAHUMITOS X UNIDAD MIRRA PALO SANTO",cf:2063,may:1146},{code:"111O",name:"SAHUMITOS X UNIDAD ESTORAQUE ALCANFOR",cf:2063,may:1146},{code:"111P",name:"SAHUMITOS X UNIDAD 7 HIERBAS",cf:2063,may:1146}]},
+{name:"Carbones",products:[{code:"90B",name:"BOMBA CARBON X24 LIMPIEZA ENERGETICA",cf:4568,may:2538},{code:"90C",name:"BOMBA CARBON X24 INCIENSO",cf:4568,may:2538},{code:"90D",name:"BOMBA CARBON X24 7 PODERES",cf:4568,may:2538},{code:"90E",name:"BOMBA CARBON X24 YAGRA",cf:4568,may:2538},{code:"90F",name:"BOMBA CARBON X24 LAVANDA",cf:4568,may:2538},{code:"90G",name:"BOMBA CARBON X24 CITRONELLA NARANJA ANTIMOSQUITO",cf:4568,may:2538},{code:"92A",name:"BOMBA CARBON X12 LIMPIEZA ENERGETICA",cf:2718,may:1510},{code:"92B",name:"BOMBA CARBON X12 INCIENSO",cf:2718,may:1510},{code:"92C",name:"BOMBA CARBON X12 7 PODERES",cf:2718,may:1510},{code:"92D",name:"BOMBA CARBON X12 YAGRA",cf:2718,may:1510},{code:"92E",name:"BOMBA CARBON X12 LAVANDA",cf:2718,may:1510},{code:"92F",name:"BOMBA CARBON X12 CITRONELLA NARANJA ANTIMOSQUITO",cf:2718,may:1510}]},
+{name:"Carbones Neutros",products:[{code:"91",name:"CARBON REDONDO NEUTRO X24",cf:3499,may:1944},{code:"912A",name:"ESENCIA HORNILLO ROSAS PACK X 12",cf:33296,may:18498},{code:"912B",name:"ESENCIA HORNILLO VAINILLA PACK X 12",cf:33296,may:18498},{code:"912C",name:"ESENCIA HORNILLO LAVANDA PACK X 12",cf:33296,may:18498},{code:"912D",name:"ESENCIA HORNILLO COCO PACK X 12",cf:33296,may:18498},{code:"912E",name:"ESENCIA HORNILLO JAZMIN PACK X 12",cf:33296,may:18498},{code:"912F",name:"ESENCIA HORNILLO INCIENSO PACK X 12",cf:33296,may:18498},{code:"912G",name:"ESENCIA HORNILLO MIRRA PACK X 12",cf:33296,may:18498},{code:"912H",name:"ESENCIA HORNILLO PERAS Y FLORES BLANCAS PACK X 12",cf:33296,may:18498},{code:"912I",name:"ESENCIA HORNILLO LIMON PACK X 12",cf:33296,may:18498},{code:"912J",name:"ESENCIA HORNILLO SANDALO PACK X 12",cf:33296,may:18498},{code:"91C",name:"CARBON REDONDO NEUTRO X36",cf:1975,may:1097}]},
+{name:"Perlas Aromáticas Pack X12",products:[{code:"100",name:"PERLAS AROMATICAS PACK X 12 VAINILLA",cf:40775,may:22653},{code:"100B",name:"PERLAS AROMATICAS PACK X 12 FRUTILLA",cf:40775,may:22653},{code:"100C",name:"PERLAS AROMATICAS PACK X 12 JAZMIN",cf:40775,may:22653},{code:"100D",name:"PERLAS AROMATICAS PACK X 12 LAVANDA",cf:40775,may:22653},{code:"100E",name:"PERLAS AROMATICAS PACK X 12 ROSA",cf:40775,may:22653},{code:"100F",name:"PERLAS AROMATICAS PACK X 12 FLORES",cf:40775,may:22653},{code:"100G",name:"PERLAS AROMATICAS PACK X 12 COCO",cf:40775,may:22653},{code:"100H",name:"PERLAS AROMATICAS PACK X 12 PRIMAVERA",cf:40775,may:22653},{code:"100I",name:"PERLAS AROMATICAS PACK X 12 LIMON",cf:40775,may:22653},{code:"100J",name:"PERLAS AROMATICAS PACK X 12 HINDU",cf:40775,may:22653},{code:"100L",name:"PERLAS AROMATICAS PACK X 12 REINA DE LA NOCHE",cf:40775,may:22653},{code:"100M",name:"PERLAS AROMATICAS PACK X 12 SANDALO",cf:40775,may:22653}]},
+{name:"Perlas Aromáticas X Unidad",products:[{code:"110",name:"PERLAS AROMATICAS X UNIDAD VAINILLA",cf:3132,may:1740},{code:"110B",name:"PERLAS AROMATICAS X UNIDAD FRUTILLA",cf:3132,may:1740},{code:"110C",name:"PERLAS AROMATICAS X UNIDAD JAZMIN",cf:3132,may:1740},{code:"110D",name:"PERLAS AROMATICAS X UNIDAD LAVANDA",cf:3132,may:1740},{code:"110E",name:"PERLAS AROMATICAS X UNIDAD ROSA",cf:3132,may:1740},{code:"110F",name:"PERLAS AROMATICAS X UNIDAD FLORES",cf:3132,may:1740},{code:"110G",name:"PERLAS AROMATICAS X UNIDAD COCO",cf:3132,may:1740},{code:"110H",name:"PERLAS AROMATICAS X UNIDAD PRIMAVERA",cf:3132,may:1740},{code:"110I",name:"PERLAS AROMATICAS X UNIDAD LIMON",cf:3132,may:1740},{code:"110J",name:"PERLAS AROMATICAS X UNIDAD HINDU",cf:3132,may:1740},{code:"110L",name:"PERLAS AROMATICAS X UNIDAD REINA DE LA NOCHE",cf:3132,may:1740},{code:"110M",name:"PERLAS AROMATICAS X UNIDAD SANDALO",cf:3132,may:1740}]},
+{name:"Family Pack",products:[{code:"2456A",name:"FAMILY PACK CANNABIS (43 UNIDADES)",cf:140044,may:77802},{code:"2456B",name:"FAMILY PACK NATURAL (50 UNIDADES)",cf:128060,may:71144},{code:"2456C",name:"FAMILY PACK PALO SANTO (50 UNIDADES)",cf:108611,may:60340},{code:"2456D",name:"FAMILY PACK RITUAL (43 UNIDADES)",cf:116005,may:64447},{code:"2456E",name:"FAMILY PACK VARIADO (46 UNIDADES)",cf:119174,may:66208}]},
+{name:"Cristales de Luz",products:[{code:"2460A",name:"CRISTALES DE LUZ RENOVACION Y VITALIDAD",cf:15071,may:8373},{code:"2460B",name:"CRISTALES DE LUZ FUERZA INTERIOR",cf:15071,may:8373},{code:"2460C",name:"CRISTALES DE LUZ FORTALECIMIENTO Y BIENESTAR",cf:15071,may:8373},{code:"2460D",name:"CRISTALES DE LUZ EQUILIBRIO Y CLARIDAD",cf:15071,may:8373}]},
+{name:"TAO Velas",products:[{code:"4650A",name:"TAO VELAS NEUTRAS X 12",cf:2776,may:1542}]},
+{name:"Copaleras",products:[{code:"014B",name:"COPALERA ANCESTRAL CHICA",cf:9860,may:5478},{code:"014C",name:"COPALERA ANCESTRAL MINI",cf:7568,may:4204},{code:"14",name:"COPALERA ANCESTRAL GRANDE",cf:11426,may:6348},{code:"6J",name:"COPALERA LUNA COLOR AMARILLO",cf:5792,may:3218},{code:"6K",name:"COPALERA LUNA COLOR ROSA",cf:5792,may:3218}]},
+{name:"Sahumadores",products:[{code:"009F",name:"SAHUMADOR PORTA SAHUMERIO",cf:5686,may:3159},{code:"009J",name:"SAHUMADOR ESMALTADO COLOR",cf:17124,may:9514},{code:"6E",name:"SAHUMADOR CEMENTO CHICO",cf:1361,may:756},{code:"6H",name:"SAHUMADOR CEMENTO TRIANGULAR",cf:1633,may:907},{code:"9",name:"SAHUMADOR CERAMICA CHICO NRO 1",cf:2003,may:1113},{code:"99A",name:"CAJA SAHUMADOR NATIVO",cf:9595,may:5331},{code:"99G",name:"CAJA SAHUMADOR SAGRADA COLOR",cf:8148,may:4526},{code:"99K",name:"CAJA SAHUMADOR PORTA SAHUMERIO VOLCAN HEXAGONAL",cf:8530,may:4739},{code:"9L",name:"SAHUMADOR SAGRADO COLOR",cf:2267,may:1260},{code:"9M",name:"SAHUMADOR NATIVO",cf:2363,may:1313},{code:"9P",name:"SAHUMADOR CEMENTO HOJA",cf:2267,may:1260},{code:"9UA",name:"SAHUMADOR PORTA SAHUMERIO- ESMALTADO COLORMARRON$ 8395,00",cf:8395,may:4664},{code:"9UB",name:"SAHUMADOR PORTA SAHUMERIO- ESMALTADO COLORVIOLETA$ 8395,00",cf:8395,may:4664},{code:"9UC",name:"SAHUMADOR PORTA SAHUMERIO- ESMALTADO COLORCELESTE$ 8395,00",cf:8395,may:4664},{code:"9UD",name:"SAHUMADOR PORTA SAHUMERIO- ESMALTADO COLORAMARILLO$ 8395,00",cf:8395,may:4664},{code:"9UE",name:"PORTA SAHUMERIO Y BOMBITA FLOR DE LOTO",cf:5791,may:3217},{code:"9UF",name:"SAHUMADOR PORTA SAHUMERIO BLANCO NATURAL",cf:8395,may:4664},{code:"9V",name:"SAHUMADOR HORNILLO CEMENTO",cf:14430,may:8017}]},
+{name:"Sahumadores en Caja",products:[{code:"99B",name:"CAJA COPALERA ANCESTRAL CHICA",cf:20241,may:11245},{code:"99C",name:"CAJA COPALERA ANCESTRAL MINI",cf:13113,may:7285},{code:"99E",name:"CAJA CEMENTO CHICO",cf:4160,may:2311},{code:"99F",name:"CAJA CEMENTO TRIANGULAR",cf:7127,may:3959},{code:"99I",name:"CAJA KIT ASTRAL",cf:94536,may:52520}]},
+{name:"Porta Sahumerios",products:[{code:"5C",name:"PORTA SAHUMERIO OM",cf:3573,may:1985},{code:"5D",name:"X UNIDAD PORTA SAHUMERIO WOOD",cf:9053,may:5030},{code:"5D30",name:"PACK X 30 PORTA SAHUMERIO WOOD",cf:260575,may:144764},{code:"5E",name:"PORTA SAHUMERIO TORRE HINDU",cf:34969,may:19427},{code:"6L",name:"SAHUMADOR PORTA SAHUMERIO OJO COLOR AMARILLO",cf:2510,may:1395},{code:"6M",name:"SAHUMADOR PORTA SAHUMERIO OJO COLOR ROSA",cf:2318,may:1288},{code:"6N",name:"PORTA SAHUMERIO SAHUMADOR COLOR AMARILLO",cf:1352,may:751},{code:"6O",name:"PORTA SAHUMERIO SAHUMADOR COLOR CELESTE",cf:1352,may:751}]},
+{name:"Hierbas por Kilo",products:[{code:"6610B",name:"LAVANDA PREMIUM X KILO",cf:59004,may:32780},{code:"6610C",name:"MIRRA X KILO",cf:36134,may:20074},{code:"6610D",name:"SANDALO X KILO",cf:45611,may:25340},{code:"6610E",name:"SANGRE DE DRAGO X KILO",cf:39262,may:21812},{code:"6610F",name:"ESTORAQUE PREMIUM X KILO",cf:23081,may:12823}]},
+{name:"Hierbas en Sobre",products:[{code:"35C",name:"HIERBAS EN SOBRE X6 CONTRAYERBA",cf:3353,may:1863},{code:"35L",name:"HIERBAS EN SOBRE X6 TE VERDE",cf:3353,may:1863}]}];
+
+let currentClient='cf',quantities={};
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('headerDate').innerHTML='Lista de precios<br>'+new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const sel=document.getElementById('lineFilter');
+  LINES.forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+  renderCatalog();
+});
+
+function setClient(type){
+  currentClient=type;
+  document.getElementById('btn-cf').classList.toggle('active',type==='cf');
+  document.getElementById('btn-may').classList.toggle('active',type==='mayorista');
+  renderCatalog();updateSidebar();
+}
+
+function goStep2(){
+  const name=document.getElementById('clientName').value.trim();
+  const phone=document.getElementById('clientPhone').value.trim();
+  if(!name||!phone){alert('Por favor completá tu nombre y WhatsApp para continuar.');return;}
+  goStep(2);renderCatalog();
+}
+
+function goStep3(){
+  const codes=Object.keys(quantities).filter(c=>quantities[c]>0);
+  if(!codes.length){alert('Agregá al menos un producto antes de continuar.');return;}
+  goStep(3);renderConfirm();
+}
+
+function goStep(n){
+  for(let i=1;i<=4;i++){
+    document.getElementById('panel'+i).classList.toggle('active',i===n);
+    const s=document.getElementById('step'+i);
+    if(s){s.classList.remove('active','done');if(i===n)s.classList.add('active');else if(i<n)s.classList.add('done');}
+  }
+  window.scrollTo(0,0);
+}
+
+function renderCatalog(){
+  const catalog=document.getElementById('catalog');
+  const search=document.getElementById('searchInput').value.toLowerCase().trim();
+  const lineFilter=document.getElementById('lineFilter').value;
+  let html='',total=0;
+  LINES.forEach((line,li)=>{
+    if(lineFilter&&line.name!==lineFilter)return;
+    const filtered=line.products.filter(p=>!search||p.name.toLowerCase().includes(search)||p.code.toLowerCase().includes(search));
+    if(!filtered.length)return;
+    html+=`<div class="line-group"><div class="line-header" onclick="toggleLine(${li})" id="lh-${li}"><span class="lh-name">${line.name}</span><span class="lh-count">${filtered.length} productos</span><span class="lh-toggle">▾</span></div><table class="product-table" id="lt-${li}">`;
+    filtered.forEach(p=>{
+      const price=currentClient==='cf'?p.cf:p.may;
+      const priceIva=Math.round(price*1.21);
+      const qty=quantities[p.code]||'';
+      const hasQty=qty>0;
+      html+=`<tr class="product-row${hasQty?' has-qty':''}" id="row-${p.code}"><td class="col-code">${p.code}</td><td class="col-name">${fmt(p.name)}</td><td class="col-price">$${price.toLocaleString('es-AR')}</td><td class="col-price-iva">$${priceIva.toLocaleString('es-AR')} <span style="font-size:9px;opacity:.7">c/IVA</span></td><td class="col-qty"><input type="number" min="0" step="1" class="qty-input${hasQty?' filled':''}" value="${qty}" placeholder="0" id="qty-${p.code}" onchange="setQty('${p.code}',this.value)" oninput="setQty('${p.code}',this.value)"></td></tr>`;
+    });
+    html+=`</table></div>`;total+=filtered.length;
+  });
+  if(!total)html=`<div class="no-results">No se encontraron productos para "${search}"</div>`;
+  catalog.innerHTML=html;
+  Object.keys(quantities).forEach(code=>{
+    const input=document.getElementById(`qty-${code}`);
+    if(input){input.value=quantities[code];input.classList.add('filled');}
+    const row=document.getElementById(`row-${code}`);
+    if(row)row.classList.add('has-qty');
+  });
+}
+
+function fmt(name){return name.charAt(0)+name.slice(1).toLowerCase().replace(/\b(ps|sm|x\d+)\b/gi,s=>s.toUpperCase());}
+
+function toggleLine(li){
+  const hdr=document.getElementById(`lh-${li}`),tbl=document.getElementById(`lt-${li}`);
+  if(!tbl)return;
+  tbl.classList.toggle('hidden');hdr.classList.toggle('collapsed',tbl.classList.contains('hidden'));
+}
+
+function setQty(code,val){
+  const n=parseInt(val)||0;
+  if(n<=0)delete quantities[code];else quantities[code]=n;
+  const row=document.getElementById(`row-${code}`),input=document.getElementById(`qty-${code}`);
+  if(row)row.classList.toggle('has-qty',n>0);
+  if(input)input.classList.toggle('filled',n>0);
+  updateSidebar();
+}
+
+function filterProducts(){renderCatalog();}
+
+function clearOrder(){quantities={};renderCatalog();updateSidebar();}
+
+function getProd(code){for(const l of LINES){const p=l.products.find(x=>x.code===code);if(p)return p;}return null;}
+
+function updateSidebar(){
+  const codes=Object.keys(quantities).filter(c=>quantities[c]>0);
+  const oi=document.getElementById('orderItems'),ta=document.getElementById('totalsArea');
+  if(!codes.length){oi.innerHTML='<div class="order-empty">Seleccioná productos con los campos de cantidad</div>';ta.style.display='none';return;}
+  let sub=0,units=0,html='';
+  codes.forEach(code=>{
+    const p=getProd(code);if(!p)return;
+    const qty=quantities[code],price=currentClient==='cf'?p.cf:p.may,lt=price*qty;
+    sub+=lt;units+=qty;
+    html+=`<div class="order-item"><span class="oi-qty">${qty}×</span><span class="oi-name">${fmt(p.name)}</span><span class="oi-total">$${Math.round(lt).toLocaleString('es-AR')}</span></div>`;
+  });
+  const iva=Math.round(sub*0.21),total=sub+iva;
+  oi.innerHTML=html;ta.style.display='block';
+  document.getElementById('subtotal').textContent='$ '+Math.round(sub).toLocaleString('es-AR');
+  document.getElementById('ivaAmt').textContent='$ '+iva.toLocaleString('es-AR');
+  document.getElementById('grandTotal').textContent='$ '+total.toLocaleString('es-AR');
+  document.getElementById('totalItems').textContent=`${codes.length} productos · ${units} unidades`;
+}
+
+function renderConfirm(){
+  const codes=Object.keys(quantities).filter(c=>quantities[c]>0);
+  const name=document.getElementById('clientName').value;
+  const phone=document.getElementById('clientPhone').value;
+  const addr=document.getElementById('clientAddress').value;
+  const notes=document.getElementById('clientNotes').value;
+  const clientLabel=currentClient==='cf'?'Consumidor Final':'Mayorista';
+  let sub=0,html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+    <div><div style="font-size:11px;color:var(--smoke);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Cliente</div><div style="font-size:14px;font-weight:500">${name}</div></div>
+    <div><div style="font-size:11px;color:var(--smoke);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">WhatsApp</div><div style="font-size:14px">${phone}</div></div>
+    ${addr?`<div><div style="font-size:11px;color:var(--smoke);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Dirección</div><div style="font-size:13px">${addr}</div></div>`:''}
+    ${notes?`<div><div style="font-size:11px;color:var(--smoke);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Notas</div><div style="font-size:13px">${notes}</div></div>`:''}
+    <div><div style="font-size:11px;color:var(--smoke);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Tipo</div><div style="font-size:14px">${clientLabel}</div></div>
+  </div>
+  <table class="confirm-table"><thead><tr><th>Código</th><th>Producto</th><th>P. Unit</th><th>Cant.</th><th>Subtotal</th></tr></thead><tbody>`;
+  codes.forEach(code=>{
+    const p=getProd(code);if(!p)return;
+    const qty=quantities[code],price=currentClient==='cf'?p.cf:p.may,lt=price*qty;
+    sub+=lt;
+    html+=`<tr><td>${p.code}</td><td>${fmt(p.name)}</td><td>$${price.toLocaleString('es-AR')}</td><td>${qty}</td><td>$${Math.round(lt).toLocaleString('es-AR')}</td></tr>`;
+  });
+  const iva=Math.round(sub*0.21),total=sub+iva;
+  html+=`</tbody></table><div class="confirm-totals"><div class="ct-row"><span>Subtotal sin IVA</span><span>$ ${Math.round(sub).toLocaleString('es-AR')}</span></div><div class="ct-row"><span>IVA (21%)</span><span>$ ${iva.toLocaleString('es-AR')}</span></div><div class="ct-row grand"><span>TOTAL CON IVA</span><span>$ ${total.toLocaleString('es-AR')}</span></div></div>`;
+  document.getElementById('confirmContent').innerHTML=html;
+}
+
+function submitOrder(){
+  const orderNum=Math.random().toString(36).substr(2,8).toUpperCase();
+  document.getElementById('successOrderNum').textContent='#'+orderNum;
+  goStep(4);
+  // TODO: POST to Supabase endpoint
+  // const orderData = { ... };
+  // fetch('https://[PROJECT].supabase.co/rest/v1/pedidos', { method:'POST', headers:{...}, body: JSON.stringify(orderData) });
+}
+</script>
+</body>
+</html>

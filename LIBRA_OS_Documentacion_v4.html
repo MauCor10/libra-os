@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIBRA OS · Documentación v4.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0f0f0f;--paper:#faf8f4;--cream:#f2ead8;--gold:#b8832a;
+  --line:#e0d8c8;--muted:#8a7e6e;
+  --purple:#6b5ce7;--purple-l:#ede9ff;
+  --teal:#0a8a5a;--teal-l:#d6f5e8;
+  --amber:#c47a00;--amber-l:#fef3cd;
+  --coral:#c43020;--coral-l:#fee8e4;
+  --blue:#1a52c8;--blue-l:#dbeafe;
+  --green:#166534;--green-l:#dcfce7;
+  --gray-l:#f3f2ef;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;}
+
+.top-nav{background:var(--ink);color:white;padding:0 32px;display:flex;align-items:center;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--gold);}
+.nav-brand{font-family:'Playfair Display',serif;font-size:16px;padding:14px 0;margin-right:28px;color:white;white-space:nowrap;}
+.nav-brand span{color:#a78bfa;}
+.nav-links{display:flex;overflow-x:auto;}
+.nav-link{padding:16px 14px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#888;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.nav-link:hover{color:white;}
+.nav-link.active{color:white;border-bottom-color:#a78bfa;}
+
+.section{display:none;max-width:1000px;margin:0 auto;padding:48px 40px;}
+.section.active{display:block;}
+
+.cover-wrap{max-width:1000px;margin:0 auto;padding:64px 40px 48px;}
+.cover-ey{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+.cover-title{font-family:'Playfair Display',serif;font-size:54px;font-weight:600;line-height:1.05;margin-bottom:10px;}
+.cover-title span{color:var(--purple);}
+.cover-sub{font-size:16px;color:var(--muted);margin-bottom:48px;}
+.cover-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:40px;}
+.cover-cell{background:var(--paper);padding:20px;}
+.cc-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.cc-val{font-size:14px;font-weight:500;}
+.cover-toc{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:24px 28px;}
+.toc-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px;}
+.toc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.toc-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .15s;font-size:13px;}
+.toc-item:hover{background:var(--line);}
+.toc-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0;}
+.toc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:600;margin-bottom:6px;}
+.section-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.section-sub{font-size:14px;color:var(--muted);margin-bottom:32px;border-bottom:1px solid var(--line);padding-bottom:20px;}
+
+.agent-block{border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:hidden;}
+.agent-header{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--cream);}
+.agent-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.agent-name{font-weight:600;font-size:15px;}
+.agent-meta{font-size:11px;color:var(--muted);margin-left:auto;}
+.agent-body{padding:16px 20px;}
+.agent-item{display:flex;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--line);}
+.agent-item:last-child{border-bottom:none;}
+.agent-item::before{content:'—';color:var(--muted);flex-shrink:0;}
+.agent-rule{background:#fff8f7;border:1px solid #fca5a5;border-radius:6px;padding:10px 14px;margin-top:10px;font-size:12px;color:#7f1d1d;font-weight:500;}
+
+.callout{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin:16px 0;font-size:13px;color:#444;line-height:1.7;}
+.callout-title{font-weight:600;color:var(--ink);margin-bottom:4px;}
+
+.flow-step{display:grid;grid-template-columns:40px 1fr auto;gap:14px;align-items:start;padding:16px 0;border-bottom:1px solid var(--line);}
+.flow-step:last-child{border-bottom:none;}
+.step-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0;color:white;}
+.step-body{}
+.step-title{font-weight:600;font-size:14px;margin-bottom:4px;}
+.step-desc{font-size:12px;color:#555;line-height:1.6;}
+.step-agent{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px;}
+.step-timing{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;padding-top:8px;}
+
+.decision-box{background:#fff8f0;border:1px solid #fed7aa;border-radius:8px;padding:14px 18px;margin:12px 0;}
+.decision-title{font-weight:600;font-size:12px;color:#7c2d12;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}
+.decision-row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-size:12px;}
+.decision-cond{font-weight:600;color:#7c2d12;min-width:120px;flex-shrink:0;}
+
+.channels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.channel{border:1px solid var(--line);border-radius:8px;padding:16px;}
+.channel-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;margin-bottom:10px;display:inline-block;}
+.channel-main{background:#e0f2fe;color:#075985;}
+.channel-internal{background:var(--gray-l);color:#555;}
+.channel-title{font-weight:600;font-size:14px;margin-bottom:6px;}
+.channel-desc{font-size:12px;color:#555;margin-bottom:8px;}
+.channel-example{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--cream);padding:6px 8px;border-radius:4px;}
+
+.states-grid{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.state-row{display:grid;grid-template-columns:180px 1fr 160px;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12px;}
+.state-row:last-child{border-bottom:none;}
+.state-badge{font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:4px;}
+.s-pend{background:#fef9c3;color:#854d0e;}
+.s-ok{background:#dcfce7;color:#166534;}
+.s-err{background:#fee2e2;color:#991b1b;}
+.s-part{background:#e0f2fe;color:#075985;}
+.s-cancel{background:var(--gray-l);color:#555;}
+
+.price-block{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.price-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--cream);}
+.price-role{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;}
+.price-costo{background:#fef3cd;color:#92400e;}
+.price-b2b{background:#dbeafe;color:#1e40af;}
+.price-retail{background:#dcfce7;color:#166534;}
+.price-body{padding:12px 16px;font-size:12px;color:#555;}
+
+.gift-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.gift-table th{background:var(--cream);padding:10px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);}
+.gift-table td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;}
+.gift-table tr:last-child td{border-bottom:none;}
+.gift-segment{font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;}
+.gift-n1{color:#166534;}
+.gift-n2{color:#c47a00;}
+.gift-n3{color:#c43020;}
+.gift-tope{font-weight:600;font-family:'DM Mono',monospace;}
+
+.error-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.error-card{border:1px solid var(--line);border-radius:8px;padding:16px;}
+.error-level{font-family:'DM Mono',monospace;font-size:10px;margin-bottom:8px;font-weight:500;}
+.e1{color:#166534;}
+.e2{color:#c47a00;}
+.e3{color:#c43020;}
+.error-title{font-weight:600;font-size:14px;margin-bottom:6px;}
+.error-desc{font-size:12px;color:#555;line-height:1.6;}
+
+.dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.dash-card{border:1px solid var(--line);border-radius:8px;padding:14px;}
+.dash-icon{width:28px;height:28px;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.dash-title{font-weight:600;font-size:13px;margin-bottom:4px;}
+.dash-desc{font-size:12px;color:#555;}
+
+.stack-table{width:100%;border-collapse:collapse;}
+.stack-table th{background:var(--ink);color:white;padding:10px 14px;text-align:left;font-size:11px;font-weight:500;}
+.stack-table td{padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top;}
+.stack-table tr:last-child td{border-bottom:none;}
+.cost-free{color:#166534;font-weight:600;}
+.cost-low{color:#c47a00;font-weight:600;}
+.os-check{color:#166534;font-weight:600;}
+
+.decision-table{width:100%;border-collapse:collapse;}
+.decision-table th{background:var(--cream);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);}
+.decision-table td{padding:9px 12px;border-bottom:1px solid var(--line);font-size:12px;vertical-align:top;}
+.decision-table tr:last-child td{border-bottom:none;}
+.d-code{font-family:'DM Mono',monospace;font-size:11px;background:rgba(0,0,0,0.07);color:var(--ink);padding:1px 5px;border-radius:3px;border:1px solid rgba(0,0,0,0.1);}
+.d-closed{background:#dcfce7;color:#166534;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
+.d-f2{background:#e0f2fe;color:#075985;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
+
+.diagram-wrap{background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:24px;margin:16px 0;}
+.dia-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+.dia-flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;}
+.dia-node{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:500;text-align:center;}
+.dia-arrow{color:var(--muted);font-size:18px;padding:0 4px;}
+.dia-libra{background:var(--purple-l);color:var(--purple);}
+.dia-wa{background:var(--teal-l);color:var(--teal);}
+.dia-pedidos{background:var(--blue-l);color:var(--blue);}
+.dia-human{background:var(--gray-l);color:#555;}
+.dia-auto{background:var(--green-l);color:var(--green);}
+
+.gift-flow{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.gift-step{display:flex;gap:10px;align-items:flex-start;font-size:12px;}
+.gift-step-num{width:20px;height:20px;border-radius:50%;background:var(--purple-l);color:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px;flex-shrink:0;margin-top:1px;}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand">LIBRA <span>OS</span></div>
+  <div class="nav-links">
+    <div class="nav-link active" onclick="showSection('portada')">Portada</div>
+    <div class="nav-link" onclick="showSection('agentes')">1 · Agentes</div>
+    <div class="nav-link" onclick="showSection('venta')">2 · Flujo venta</div>
+    <div class="nav-link" onclick="showSection('compra')">3 · Flujo compra</div>
+    <div class="nav-link" onclick="showSection('precios')">4 · Precios y regalos</div>
+    <div class="nav-link" onclick="showSection('errores')">5 · Errores</div>
+    <div class="nav-link" onclick="showSection('dashboard')">6 · Dashboard</div>
+    <div class="nav-link" onclick="showSection('stack')">7 · Stack</div>
+    <div class="nav-link" onclick="showSection('decisiones')">8 · Decisiones</div>
+  </div>
+</nav>
+
+<!-- PORTADA -->
+<div class="section active" id="s-portada">
+<div class="cover-wrap">
+  <div class="cover-ey">Documentación operativa · Versión 4.0 · Definitiva</div>
+  <div class="cover-title">LIBRA <span>OS</span></div>
+  <div class="cover-sub">Sistema operativo completo · Distribución Sagrada Madre · Argentina</div>
+  <div class="cover-grid">
+    <div class="cover-cell"><div class="cc-label">Negocio</div><div class="cc-val">Distribución Sagrada Madre</div></div>
+    <div class="cover-cell"><div class="cc-label">Agentes</div><div class="cc-val">3 · LIBRA · IAwhatsapp · IApedidos</div></div>
+    <div class="cover-cell"><div class="cc-label">Base de datos</div><div class="cc-val">12 tablas · 91 campos</div></div>
+    <div class="cover-cell"><div class="cc-label">Costo infra.</div><div class="cc-val">~$15–25 USD/mes</div></div>
+    <div class="cover-cell"><div class="cc-label">Decisiones</div><div class="cc-val">35 cerradas · 0 pendientes</div></div>
+    <div class="cover-cell"><div class="cc-label">Versión</div><div class="cc-val">MVP 4.0 · Definitiva</div></div>
+    <div class="cover-cell"><div class="cc-label">Estado</div><div class="cc-val">Listo para implementar</div></div>
+    <div class="cover-cell"><div class="cc-label">Fecha</div><div class="cc-val">Marzo 2026</div></div>
+  </div>
+  <div class="cover-toc">
+    <div class="toc-title">Contenido</div>
+    <div class="toc-grid">
+      <div class="toc-item" onclick="showSection('agentes')"><span class="toc-num">01</span><span class="toc-dot" style="background:var(--purple)"></span>Sistema multiagente — 3 agentes</div>
+      <div class="toc-item" onclick="showSection('venta')"><span class="toc-num">02</span><span class="toc-dot" style="background:var(--teal)"></span>Proceso de venta completo</div>
+      <div class="toc-item" onclick="showSection('compra')"><span class="toc-num">03</span><span class="toc-dot" style="background:var(--blue)"></span>Proceso de compra semanal</div>
+      <div class="toc-item" onclick="showSection('precios')"><span class="toc-num">04</span><span class="toc-dot" style="background:var(--amber)"></span>Modelo de precios y regalos</div>
+      <div class="toc-item" onclick="showSection('errores')"><span class="toc-num">05</span><span class="toc-dot" style="background:var(--coral)"></span>Manejo de errores · 3 niveles</div>
+      <div class="toc-item" onclick="showSection('dashboard')"><span class="toc-num">06</span><span class="toc-dot" style="background:var(--green)"></span>Dashboard LIBRA</div>
+      <div class="toc-item" onclick="showSection('stack')"><span class="toc-num">07</span><span class="toc-dot" style="background:#888"></span>Stack tecnológico</div>
+      <div class="toc-item" onclick="showSection('decisiones')"><span class="toc-num">08</span><span class="toc-dot" style="background:var(--ink)"></span>Registro completo de decisiones</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SECCIÓN 01: AGENTES -->
+<div class="section" id="s-agentes">
+  <div class="section-eyebrow">Sección 01</div>
+  <h2>Sistema multiagente LIBRA</h2>
+  <div class="section-sub">3 agentes definidos · IAcompra integrado en LIBRA como función · sin complejidad innecesaria</div>
+
+  <div class="callout">
+    <div class="callout-title">Regla para definir agentes</div>
+    Si la tarea tiene su propio contexto conversacional, puede fallar de forma independiente, o maneja estado con terceros → es un agente separado. Si es solo procesamiento de datos o cálculo → es una función de LIBRA.
+  </div>
+
+  <div style="margin:24px 0;">
+    <div class="diagram-wrap">
+      <div class="dia-title">Arquitectura de comunicación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;">
+        <div>
+          <div class="dia-node dia-wa" style="margin-bottom:8px;">IAwhatsapp</div>
+          <div style="font-size:11px;color:var(--muted);">Canal externo · 24/7<br>Clientes + Armador + Repartidor</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="dia-node dia-libra" style="margin-bottom:8px;padding:12px 20px;">LIBRA CEO</div>
+          <div style="font-size:11px;color:var(--muted);">Orquesta todo<br>Stock · Finanzas · Compras</div>
+        </div>
+        <div>
+          <div class="dia-node dia-pedidos" style="margin-bottom:8px;">IApedidos</div>
+          <div style="font-size:11px;color:var(--muted);">Interpreta lenguaje natural<br>SKUs + Precios + Ambigüedad</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="dia-node dia-human" style="display:inline-block;">Supabase — base de datos central</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Los 3 agentes leen y escriben en Supabase · n8n orquesta los flujos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="agent-block">
+    <div class="agent-header">
+      <div class="agent-dot" style="background:var(--purple)"></div>
+      <div>
+        <div class="agent-name">LIBRA — Agente CEO</div>
+        <div style="font-size:12px;color:var(--muted);">Central · siempre activo · IAstock + función generar_lista_compra integrados</div>
+      </div>
+      <div class="agent-meta">CEO del sistema</div>
+    </div>
+    <div class="agent-body">
+      <div class="agent-item">Orquesta todos los agentes y coordina decisiones entre procesos</div>
+      <div class="agent-item">Gestiona stock directamente como función nativa (IAstock integrado) — verifica disponibilidad mediante transacción atómica RPC antes de confirmar cualquier pedido</div>
+      <div class="agent-item">Genera la lista de compra semanal cada jueves mediante la función <code>generar_lista_compra</code> (ex-IAcompra) — consolida tres fuentes: productos con stock bajo mínimo, pedidos acumulados en lista de espera (FIFO), y promedio de costo de regalos de las últimas 4 semanas. La lista queda disponible en el dashboard el viernes para que el dueño la revise y ejecute.</div>
+      <div class="agent-item">Aplica la lógica de regalos automáticamente al confirmar cada pedido: detecta el nivel del cliente, arma la combinación óptima de productos de mayor stock dentro del tope de costo, y se lo comunica al cliente por WhatsApp antes de confirmar</div>
+      <div class="agent-item">Monitorea salud del negocio en tiempo real · dashboard disponible 24/7</div>
+      <div class="agent-item">Registra movimientos financieros en Supabase tras cada entrega confirmada — calcula margen real por venta</div>
+      <div class="agent-item">Procesa actualizaciones mensuales de listas de precios — parsea los 3 PDFs, detecta cambios producto a producto, presenta diff para aprobación, versiona en Supabase sin sobreescribir historial</div>
+      <div class="agent-item">Permite al dueño cancelar pedidos desde el dashboard y revierte el stock automáticamente</div>
+      <div class="agent-rule">⚠ Regla irrompible: nunca ejecuta compras al proveedor sin aprobación humana explícita</div>
+    </div>
+  </div>
+
+  <div class="agent-block">
+    <div class="agent-header">
+      <div class="agent-dot" style="background:var(--teal)"></div>
+      <div>
+        <div class="agent-name">IAwhatsapp</div>
+        <div style="font-size:12px;color:var(--muted);">Separado · 24/7 · número WA Business dedicado al negocio</div>
+      </div>
+      <div class="agent-meta">Canal externo</div>
+    </div>
+    <div class="agent-body">
+      <div class="agent-item">Recibe mensajes directamente de clientes desde el día 1 — sin el dueño como intermediario</div>
+      <div class="agent-item">Entiende texto libre y lo deriva a IApedidos para estructurar el pedido</div>
+      <div class="agent-item">Envía catálogo interactivo por WA cuando el cliente lo solicita</div>
+      <div class="agent-item">Comunica al cliente: confirmación del pedido incluyendo el detalle del regalo asignado, alternativas si hay faltantes, y estado del pedido</div>
+      <div class="agent-item">Notifica al armador con lista detallada: código + nombre + cantidad por ítem · regalos marcados con 🎁 · nombre cliente + dirección + notas</div>
+      <div class="agent-item">Envía a repartidores: dirección, monto exacto a cobrar, notas del pedido y número de pedido</div>
+      <div class="agent-item">Registra confirmación de entrega y cobro cuando el repartidor confirma por WA</div>
+      <div class="agent-item">Notifica a clientes en lista de espera cuando llega stock nuevo (orden FIFO)</div>
+      <div class="agent-item">Escala al dueño solo cuando hay un problema que no puede resolver de forma autónoma</div>
+    </div>
+  </div>
+
+  <div class="agent-block">
+    <div class="agent-header">
+      <div class="agent-dot" style="background:var(--blue)"></div>
+      <div>
+        <div class="agent-name">IApedidos</div>
+        <div style="font-size:12px;color:var(--muted);">Separado · interpreta lenguaje natural · mapea SKUs exactos</div>
+      </div>
+      <div class="agent-meta">Procesamiento</div>
+    </div>
+    <div class="agent-body">
+      <div class="agent-item">Convierte texto libre en SKUs exactos del catálogo de Sagrada Madre</div>
+      <div class="agent-item">Aplica precio según <code>tipo_default</code> del cliente (cf / mayorista / dist) · fallback a CF si no tiene tipo definido</div>
+      <div class="agent-item">Verifica stock antes de confirmar cada ítem — LIBRA ejecuta la transacción atómica RPC</div>
+      <div class="agent-item">Lógica de desambiguación: consulta historial del cliente → infiere variante preferida → confirma. Solo muestra opciones numeradas si no puede inferir. Nunca pide el código SKU al cliente.</div>
+      <div class="agent-item">Guarda preferencias del cliente en <code>clientes.notas</code> para futuras interacciones</div>
+      <div class="agent-item">Propone alternativas numeradas cuando hay faltantes parciales</div>
+      <div class="agent-item">Procesa pedidos de los tres canales: texto libre (WA), catálogo interactivo (WA) y pedidos internos (dashboard del dueño)</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:16px;">
+    <div class="callout-title">¿Por qué IAcompra dejó de ser un agente separado?</div>
+    En versiones anteriores, IAcompra iba a navegar el sitio web de Sagrada Madre. Eso fue descartado — en fase 1 el dueño hace el pedido manualmente. Sin esa tarea, IAcompra es simplemente un cálculo: stock bajo mínimo + lista de espera + promedio de costo de regalos = lista de compra. No requiere agente separado. Es la función <code>generar_lista_compra</code> de LIBRA que corre los jueves.
+  </div>
+</div>
+
+<!-- SECCIÓN 02: FLUJO VENTA -->
+<div class="section" id="s-venta">
+  <div class="section-eyebrow">Sección 02</div>
+  <h2>Proceso de venta — flujo completo</h2>
+  <div class="section-sub">3 canales de entrada · todos convergen en el mismo flujo común</div>
+
+  <div class="channels-grid">
+    <div class="channel">
+      <div class="channel-badge channel-main">Canal principal</div>
+      <div class="channel-title">Canal A · Texto libre por WA</div>
+      <div class="channel-desc">El cliente escribe en lenguaje natural al número WA Business. IAwhatsapp recibe directo — sin el dueño como intermediario.</div>
+      <div class="channel-example">"quiero 5 palo santo lavanda" → IApedidos mapea SKUs → confirma</div>
+    </div>
+    <div class="channel">
+      <div class="channel-badge channel-main">Canal principal</div>
+      <div class="channel-title">Canal B · Catálogo interactivo WA</div>
+      <div class="channel-desc">El cliente dice "ver catálogo". IAwhatsapp envía menú interactivo con líneas. El cliente elige respondiendo mensajes.</div>
+      <div class="channel-example">"ver catálogo" → menú → elige línea → producto → cantidad → orden</div>
+    </div>
+    <div class="channel">
+      <div class="channel-badge channel-internal">Canal interno</div>
+      <div class="channel-title">Canal C · Dashboard (dueño)</div>
+      <div class="channel-desc">Para clientes exclusivos o pedidos acordados en persona. El dueño carga el pedido directamente.</div>
+      <div class="channel-example">Dashboard → selecciona cliente → carga productos → confirma → flujo normal</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-bottom:20px;">
+    <div class="callout-title">Canal A — detalle del flujo de texto libre</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+      <div style="font-size:12px;"><strong>A1.</strong> Cliente escribe al número WA Business. IAwhatsapp recibe sin intermediarios.</div>
+      <div style="font-size:12px;"><strong>A2.</strong> IAwhatsapp acusa recibo en menos de 5 segundos y deriva el texto a IApedidos.</div>
+      <div style="font-size:12px;"><strong>A3.</strong> IApedidos busca en historial del cliente → infiere variante → si hay ambigüedad genuina muestra opciones numeradas ("1-Sustentable · 2-Artesano X30 · 3-SM X20 · 4-Artesano X5"). Nunca pide SKU.</div>
+    </div>
+  </div>
+
+  <div style="border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px;">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">Flujo común — los 3 canales convergen acá</div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--purple)">1</div>
+      <div class="step-body">
+        <div class="step-title">LIBRA verifica stock — transacción atómica RPC</div>
+        <div class="step-desc">Consulta Supabase mediante función RPC atómica: check + descuento en una sola operación. Sin race condition aunque dos clientes pidan lo mismo al mismo tiempo.</div>
+        <div class="step-agent">Agente: LIBRA · Supabase RPC</div>
+      </div>
+      <div class="step-timing">Automático</div>
+    </div>
+
+    <div class="decision-box">
+      <div class="decision-title">Punto de decisión · ¿Hay stock?</div>
+      <div class="decision-row"><div class="decision-cond">Todo disponible →</div><div>Continúa al paso 2 sin interrupciones.</div></div>
+      <div class="decision-row"><div class="decision-cond">Faltante parcial →</div><div>IApedidos propone alternativas numeradas. Si acepta: continúa con pedido modificado. Si rechaza: faltantes van a lista de espera FIFO.</div></div>
+      <div class="decision-row"><div class="decision-cond">Sin stock total →</div><div>IAwhatsapp al cliente: "Lo tenemos disponible la semana que viene. ¿Te lo reservo?" Si acepta → lista de espera.</div></div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--purple)">2</div>
+      <div class="step-body">
+        <div class="step-title">LIBRA aplica la lógica de regalos</div>
+        <div class="step-desc">Identifica si el pedido califica para regalo (CF por monto / Mayorista por unidades). Consulta Supabase para obtener los productos ordenados por mayor stock disponible. Arma la combinación óptima que no supere el tope de costo del nivel. IAwhatsapp le comunica al cliente el detalle del regalo antes de confirmar.</div>
+        <div class="step-agent">Agente: LIBRA · IAwhatsapp comunica al cliente</div>
+      </div>
+      <div class="step-timing">Automático</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--purple)">3</div>
+      <div class="step-body">
+        <div class="step-title">LIBRA descuenta stock y genera orden confirmada</div>
+        <div class="step-desc">Actualiza <code>stock_actual</code> en productos (incluye unidades de regalo). Crea registros en <code>movimientos_stock</code> tipo "venta" o "regalo". Genera pedido con snapshots inmutables de precio, costo e IVA al momento de la venta.</div>
+        <div class="step-agent">Agente: LIBRA</div>
+      </div>
+      <div class="step-timing">Automático</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--teal)">4</div>
+      <div class="step-body">
+        <div class="step-title">IAwhatsapp notifica al armador</div>
+        <div class="step-desc">Envía WA con lista completa: código + nombre + cantidad. Los regalos aparecen marcados con 🎁. Incluye nombre del cliente, dirección de entrega y notas del pedido. Ej: "PEDIDO #A1B2 — 5× PS Lavanda (5920E) — 🎁 1× Artesano PS Lavanda (350C) REGALO — Juan García — Av. Corrientes 1234"</div>
+        <div class="step-agent">Agente: IAwhatsapp</div>
+      </div>
+      <div class="step-timing">Inmediato</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:#888">5</div>
+      <div class="step-body">
+        <div class="step-title">Armador prepara el pedido físicamente</div>
+        <div class="step-desc">Con la lista recibida por WA. Al terminar confirma al sistema con un mensaje.</div>
+        <div class="step-agent">Humano</div>
+      </div>
+      <div class="step-timing">Variable</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:#888">6</div>
+      <div class="step-body">
+        <div class="step-title">Dueño asigna repartidor · IAwhatsapp notifica</div>
+        <div class="step-desc">El dueño elige desde el dashboard. IAwhatsapp envía automáticamente al repartidor: dirección, monto exacto a cobrar, notas del pedido y número de pedido.</div>
+        <div class="step-agent">Humano + IAwhatsapp · asignación automática en fase 2</div>
+      </div>
+      <div class="step-timing">Manual → auto fase 2</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--teal)">7</div>
+      <div class="step-body">
+        <div class="step-title">Repartidor entrega, cobra en efectivo y confirma por WA</div>
+        <div class="step-desc">IAwhatsapp registra <code>fecha_entrega</code> y <code>fecha_cobro</code>. El campo <code>fecha_rendicion</code> queda NULL hasta que el repartidor rinda la plata al dueño — mientras tanto el monto figura en "efectivo en calle" del dashboard.</div>
+        <div class="step-agent">Repartidor + IAwhatsapp</div>
+      </div>
+      <div class="step-timing">Post-entrega</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--purple)">8</div>
+      <div class="step-body">
+        <div class="step-title">LIBRA cierra el ciclo financiero</div>
+        <div class="step-desc">Estado → "entregado_cobrado". Calcula ganancia neta: (precio_unitario_snapshot − costo_unitario_snapshot) × cantidad por cada ítem. Los regalos suman costo sin ingreso — aparecen como "inversión en fidelización" en el dashboard.</div>
+        <div class="step-agent">Agente: LIBRA</div>
+      </div>
+      <div class="step-timing">Automático</div>
+    </div>
+  </div>
+
+  <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Estados del pedido</div>
+  <div class="states-grid">
+    <div class="state-row"><div><span class="state-badge s-pend">recibido</span></div><div>Llegó el mensaje, procesando</div><div style="font-size:11px;color:var(--muted);">Automático → siguiente en &lt;10s</div></div>
+    <div class="state-row"><div><span class="state-badge s-pend">verificando_stock</span></div><div>LIBRA chequeando disponibilidad</div><div style="font-size:11px;color:var(--muted);">Automático → siguiente en &lt;5s</div></div>
+    <div class="state-row"><div><span class="state-badge s-part">parcialmente_confirmado</span></div><div>Algunos ítems sin stock, esperando respuesta</div><div style="font-size:11px;color:var(--muted);">Espera respuesta del cliente</div></div>
+    <div class="state-row"><div><span class="state-badge s-ok">confirmado</span></div><div>Stock descontado · armador notificado · regalo aplicado</div><div style="font-size:11px;color:var(--muted);">Armador en acción</div></div>
+    <div class="state-row"><div><span class="state-badge s-ok">en_preparacion</span></div><div>Armador preparando</div><div style="font-size:11px;color:var(--muted);">Proceso manual</div></div>
+    <div class="state-row"><div><span class="state-badge s-ok">en_reparto</span></div><div>Repartidor asignado y notificado</div><div style="font-size:11px;color:var(--muted);">Repartidor en camino</div></div>
+    <div class="state-row"><div><span class="state-badge s-ok">entregado_cobrado</span></div><div>Ciclo completo · margen calculado</div><div style="font-size:11px;color:var(--muted);">Ciclo cerrado</div></div>
+    <div class="state-row"><div><span class="state-badge s-cancel">cancelado</span></div><div>Solo el dueño · LIBRA revierte stock</div><div style="font-size:11px;color:var(--muted);">Dueño interviene</div></div>
+    <div class="state-row"><div><span class="state-badge s-pend">entrega_fallida</span></div><div>IAwhatsapp coordina reentrega</div><div style="font-size:11px;color:var(--muted);">Stock no se devuelve aún</div></div>
+    <div class="state-row"><div><span class="state-badge s-err">error</span></div><div>Fallo en un proceso → WA al dueño</div><div style="font-size:11px;color:var(--muted);">Alerta WA → intervención manual</div></div>
+  </div>
+</div>
+
+<!-- SECCIÓN 03: FLUJO COMPRA -->
+<div class="section" id="s-compra">
+  <div class="section-eyebrow">Sección 03</div>
+  <h2>Proceso de compra a Sagrada Madre</h2>
+  <div class="section-sub">Ciclo semanal · LIBRA analiza el jueves · lista lista el viernes · dueño ejecuta manualmente en SM</div>
+
+  <div class="callout" style="margin-bottom:24px;">
+    <div class="callout-title">Decisión de diseño clave</div>
+    LIBRA genera la lista de compra óptima cada jueves. La lista queda disponible en el dashboard el viernes. El dueño la revisa, ajusta si quiere, y ejecuta el pedido manualmente en el sitio web de Sagrada Madre. Esto elimina completamente la fragilidad de automatizar la navegación de un sitio web externo. El criterio del dueño siempre reemplaza cualquier cantidad sugerida por LIBRA.
+  </div>
+
+  <div style="border:1px solid var(--line);border-radius:10px;padding:20px;">
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--purple)">1</div>
+      <div class="step-body">
+        <div class="step-title">Jueves AM · LIBRA corre <code>generar_lista_compra</code></div>
+        <div class="step-desc">Analiza 3 fuentes simultáneamente: (1) productos con <code>stock_actual &lt; stock_minimo</code> — en fase inicial todos los mínimos arrancan en 0, así que esta fuente no genera sugerencias hasta que el dueño ajuste los mínimos por producto desde el dashboard, (2) pedidos acumulados en <code>lista_espera</code> con prioridad FIFO, (3) promedio semanal del costo de regalos de las últimas 4 semanas — para no quedar corto de stock en productos que se regalan frecuentemente.</div>
+        <div class="step-agent">Función de LIBRA · 3 fuentes</div>
+      </div>
+      <div class="step-timing">Jueves AM</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--purple)">2</div>
+      <div class="step-body">
+        <div class="step-title">Viernes AM · Lista disponible en el dashboard</div>
+        <div class="step-desc">La lista muestra: producto, código SM, cantidad sugerida, precio costo estimado (lista dist. vigente), subtotal. Ordenada por línea de producto para facilitar la carga en la web de SM.</div>
+        <div class="step-agent">LIBRA · Dashboard</div>
+      </div>
+      <div class="step-timing">Viernes AM</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:#888">3</div>
+      <div class="step-body">
+        <div class="step-title">Dueño revisa y ejecuta el pedido en SM</div>
+        <div class="step-desc">Revisa la lista, ajusta si quiere (puede agregar o quitar), y hace el pedido manualmente en el sitio web de Sagrada Madre. Su criterio reemplaza cualquier cantidad sugerida por LIBRA.</div>
+        <div class="step-agent">Human-in-the-loop · dueño</div>
+      </div>
+      <div class="step-timing">Viernes</div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num" style="background:#888">4</div>
+      <div class="step-body">
+        <div class="step-title">SM avisa · dueño retira · descarga en depósito</div>
+        <div class="step-desc">Sagrada Madre avisa por WhatsApp cuando el pedido está listo. El dueño retira y descarga en el depósito. Carga las cantidades recibidas en el formulario de ingreso de stock con el <code>precio_costo_unitario</code> del lote.</div>
+        <div class="step-agent">Humano · formulario de stock</div>
+      </div>
+      <div class="step-timing">Manual</div>
+    </div>
+
+    <div class="flow-step" style="border-bottom:none;">
+      <div class="step-num" style="background:var(--purple)">5</div>
+      <div class="step-body">
+        <div class="step-title">LIBRA actualiza inventario y notifica lista de espera</div>
+        <div class="step-desc">Actualiza <code>stock_actual</code> en Supabase. Crea registros en <code>movimientos_stock</code> tipo "compra" con el precio del lote. Detecta automáticamente qué clientes en <code>lista_espera</code> ya tienen stock disponible y activa IAwhatsapp para notificarlos en orden FIFO.</div>
+        <div class="step-agent">LIBRA + IAwhatsapp</div>
+      </div>
+      <div class="step-timing">Automático</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 04: PRECIOS Y REGALOS -->
+<div class="section" id="s-precios">
+  <div class="section-eyebrow">Sección 04</div>
+  <h2>Modelo de precios y regalos</h2>
+  <div class="section-sub">3 listas versionadas · costo por lote · regalos automáticos por niveles · actualización mensual con aprobación</div>
+
+  <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Las tres listas de precios</div>
+
+  <div class="price-block">
+    <div class="price-header">
+      <div class="price-role price-costo">Costo de compra</div>
+      <div style="font-weight:600;">Lista Distribuidores 1.0</div>
+    </div>
+    <div class="price-body">Lo que vos pagás a Sagrada Madre. Nunca visible a clientes. Se registra como <code>costo_unitario_snapshot</code> en cada venta para calcular el margen real. Es la base de todo cálculo financiero del sistema.</div>
+  </div>
+  <div class="price-block">
+    <div class="price-header">
+      <div class="price-role price-b2b">Precio B2B</div>
+      <div style="font-weight:600;">Lista Mayoristas</div>
+    </div>
+    <div class="price-body">Precio para locales minoristas y revendedores que compran en volumen. <code>tipo_default = "mayorista"</code> en la tabla clientes. Margen sobre costo distribuidor: ~20%.</div>
+  </div>
+  <div class="price-block">
+    <div class="price-header">
+      <div class="price-role price-retail">Precio Retail</div>
+      <div style="font-weight:600;">Lista Consumidor Final</div>
+    </div>
+    <div class="price-body">Precio máximo al público. <code>tipo_default = "cf"</code>. Es el fallback si un cliente no tiene tipo definido. Margen sobre costo distribuidor: ~116%.</div>
+  </div>
+
+  <div class="callout" style="margin:16px 0;">
+    <div class="callout-title">Ejemplo de margen real — Palo Santo Sustentable Lavanda (5920E)</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px;font-size:13px;">
+      <div style="text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px;">Tu costo</div><div style="font-size:18px;font-weight:600;">$848</div></div>
+      <div style="text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px;">Venta mayorista</div><div style="font-size:18px;font-weight:600;color:var(--amber);">$1.018 <span style="font-size:13px;">+20%</span></div></div>
+      <div style="text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px;">Venta CF</div><div style="font-size:18px;font-weight:600;color:var(--teal);">$1.832 <span style="font-size:13px;">+116%</span></div></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;">El "28%" mencionado al inicio era un promedio aproximado. El sistema calcula el margen real por cada venta individual usando los snapshots de costo y precio.</div>
+  </div>
+
+  <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:20px 0 12px;">Regla de regalos automáticos — completa</div>
+
+  <div class="callout" style="margin-bottom:16px;">
+    <div class="callout-title">Lógica de selección del regalo</div>
+    LIBRA consulta Supabase al confirmar cada pedido, obtiene los productos ordenados por mayor <code>stock_actual</code>, y arma la mejor combinación de productos que no supere el tope de costo del nivel. Puede combinar múltiples productos. El regalo nunca es un SKU fijo — siempre es el producto (o combinación) con más stock disponible en ese momento, lo que ayuda a rotar inventario naturalmente. IAwhatsapp comunica el detalle del regalo al cliente antes de la confirmación final.
+  </div>
+
+  <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:8px;">Consumidor Final — umbral por monto del pedido</div>
+  <table class="gift-table">
+    <thead><tr><th>Nivel</th><th>Umbral mínimo</th><th>Tope costo regalo</th><th>Equivale a</th><th>Ejemplo de combinación</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="gift-segment gift-n1">Nivel 1</span></td>
+        <td>desde $10.000</td>
+        <td class="gift-tope" style="color:var(--green);">$878</td>
+        <td style="font-size:12px;color:var(--muted);">~4 unidades promedio</td>
+        <td style="font-size:12px;">1 Artesano x5 · o combinación equivalente</td>
+      </tr>
+      <tr>
+        <td><span class="gift-segment gift-n2">Nivel 2</span></td>
+        <td>desde $25.000</td>
+        <td class="gift-tope" style="color:var(--amber);">$2.421</td>
+        <td style="font-size:12px;color:var(--muted);">~10 unidades promedio</td>
+        <td style="font-size:12px;">1 Sagrada Madre x20 + 1 Artesano x5 · o equivalente</td>
+      </tr>
+      <tr>
+        <td><span class="gift-segment gift-n3">Nivel 3</span></td>
+        <td>desde $50.000</td>
+        <td class="gift-tope" style="color:var(--coral);">$4.449</td>
+        <td style="font-size:12px;color:var(--muted);">~20 unidades promedio</td>
+        <td style="font-size:12px;">1 Kit Herbal + complementos · o combinación de mayor stock</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin:16px 0 8px;">Mayoristas — umbral por cantidad de unidades</div>
+  <table class="gift-table">
+    <thead><tr><th>Nivel</th><th>Umbral unidades</th><th>Tope costo regalo</th><th>Ticket aprox.</th><th>Ejemplo de combinación</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="gift-segment gift-n1">Nivel 1</span></td>
+        <td>100 a 199 u.</td>
+        <td class="gift-tope" style="color:var(--green);">$1.500</td>
+        <td style="font-size:12px;color:var(--muted);">~$147.000</td>
+        <td style="font-size:12px;">3 Artesano x5 + 1 TAO Natural · o equivalente</td>
+      </tr>
+      <tr>
+        <td><span class="gift-segment gift-n2">Nivel 2</span></td>
+        <td>200 a 299 u.</td>
+        <td class="gift-tope" style="color:var(--amber);">$2.500</td>
+        <td style="font-size:12px;color:var(--muted);">~$295.000</td>
+        <td style="font-size:12px;">1 Sagrada Madre x20 + 2 Artesano x5 · o equivalente</td>
+      </tr>
+      <tr>
+        <td><span class="gift-segment gift-n3">Nivel 3</span></td>
+        <td>300+ u.</td>
+        <td class="gift-tope" style="color:var(--coral);">$3.500</td>
+        <td style="font-size:12px;color:var(--muted);">~$442.000+</td>
+        <td style="font-size:12px;">1 Kit Herbal + 1 Sagrada Madre x20 · o combinación de mayor stock</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="margin-top:12px;">
+    <div class="callout-title">¿Por qué regalos en lugar de descuentos?</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;font-size:12px;">
+      <div>→ El precio de lista permanece intacto — el valor percibido de la marca no baja.</div>
+      <div>→ El cliente ve el valor del regalo en su resumen de pedido.</div>
+      <div>→ Se puede medir exactamente cuánto se invierte por cliente y por período.</div>
+      <div>→ El sistema lo contabiliza como costo, no como reducción de ingreso — el margen reportado es real.</div>
+      <div>→ Ayuda a rotar stock naturalmente — el regalo siempre es el producto con más acumulación.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:24px 0 12px;">Costo por lote de compra</div>
+  <p style="font-size:13px;color:#555;margin-bottom:12px;">Cada vez que retirás mercadería de Sagrada Madre, cargás el precio de la lista distribuidores vigente. Ese precio se convierte en el <code>costo_unitario_snapshot</code> de las ventas de esas unidades. Si en enero pagaste $848 y en marzo el mismo producto cuesta $1.200, las unidades compradas en enero muestran margen del 116% y las de marzo muestran el margen actualizado. El historial siempre es exacto.</p>
+
+  <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:20px 0 12px;">Actualización mensual de precios</div>
+  <div style="border:1px solid var(--line);border-radius:10px;padding:20px;">
+    <div class="flow-step">
+      <div class="step-num" style="background:#888">1</div>
+      <div class="step-body"><div class="step-title">Subís los 3 PDFs al sistema</div><div class="step-desc">PDF, texto pegado — cualquier formato. LIBRA los parsea automáticamente.</div></div>
+      <div class="step-timing">Vos</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num" style="background:var(--purple)">2</div>
+      <div class="step-body"><div class="step-title">LIBRA detecta cambios producto por producto</div><div class="step-desc">Clasifica: precio subió, bajó, producto nuevo, producto eliminado. Cada producto se analiza independientemente.</div></div>
+      <div class="step-timing">Automático</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num" style="background:#888">3</div>
+      <div class="step-body"><div class="step-title">Ves el resumen y aprobás</div><div class="step-desc">"12 productos subieron · 3 bajaron · 2 productos nuevos · 1 eliminado. ¿Confirmo?" Tu aprobación es obligatoria.</div></div>
+      <div class="step-timing">Tu aprobación</div>
+    </div>
+    <div class="flow-step" style="border-bottom:none;">
+      <div class="step-num" style="background:var(--purple)">4</div>
+      <div class="step-body"><div class="step-title">LIBRA versiona los precios en Supabase</div><div class="step-desc">Inserta nuevas filas con <code>vigente_desde = hoy</code>. Cierra las anteriores con <code>vigente_hasta = ayer</code>. Nunca sobreescribe. El historial queda intacto. Dashboard actualizado automáticamente.</div></div>
+      <div class="step-timing">Automático</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 05: ERRORES -->
+<div class="section" id="s-errores">
+  <div class="section-eyebrow">Sección 05</div>
+  <h2>Manejo de errores</h2>
+  <div class="section-sub">3 niveles · ningún pedido desaparece · todo tiene estado rastreable en Supabase</div>
+
+  <div class="error-grid">
+    <div class="error-card">
+      <div class="error-level e1">Nivel 1 · Automático</div>
+      <div class="error-title">Retry automático</div>
+      <div class="error-desc">n8n reintenta 3 veces con espera creciente: 30s · 2min · 5min. Resuelve el 95% de los errores transitorios. Sin ninguna intervención humana.</div>
+    </div>
+    <div class="error-card">
+      <div class="error-level e2">Nivel 2 · Alerta</div>
+      <div class="error-title">WA al dueño</div>
+      <div class="error-desc">Si los 3 reintentos fallan: WA al dueño con qué flujo falló, qué pedido está afectado y el error exacto. El pedido queda en estado "error" — no desaparece.</div>
+    </div>
+    <div class="error-card">
+      <div class="error-level e3">Nivel 3 · Manual</div>
+      <div class="error-title">Intervención en n8n</div>
+      <div class="error-desc">Entrás al dashboard visual de n8n, ves exactamente en qué nodo falló el flujo, y re-ejecutás ese nodo solo — sin volver a empezar todo desde cero.</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Principio de diseño: ningún pedido desaparece jamás</div>
+    Cada pedido siempre tiene un estado en Supabase. Si un agente falla en el paso 4, el pedido queda en estado "confirmado" — donde estaba antes del fallo. Cuando se resuelve, el flujo retoma desde ese estado exacto. Sin riesgo de doble cobro ni pérdida de información.
+  </div>
+
+  <div class="callout" style="margin-top:12px;">
+    <div class="callout-title">¿Cómo aprender n8n?</div>
+    n8n tiene interfaz visual de drag-and-drop — no hace falta programar para los flujos básicos. Curva de aprendizaje real: 2-3 horas para entender la lógica. En la implementación se entregan todos los flujos exportados como JSON — los importás con un click y solo conectás las credenciales.
+  </div>
+</div>
+
+<!-- SECCIÓN 06: DASHBOARD -->
+<div class="section" id="s-dashboard">
+  <div class="section-eyebrow">Sección 06</div>
+  <h2>Dashboard LIBRA</h2>
+  <div class="section-sub">HTML propio · sin configuración extra · funciona en celular y PC · conectado directo a Supabase</div>
+
+  <div class="callout" style="margin-bottom:20px;">
+    <div class="callout-title">Decisión: dashboard propio en lugar de Metabase</div>
+    En vez de Metabase (que requiere configuración, servidor propio y aprender la herramienta), el dashboard de LIBRA es una página HTML construida específicamente para este negocio. Se hostea en GitHub Pages junto al resto — costo $0. Se conecta directo a Supabase. Cualquier cambio se implementa sin depender de una herramienta externa.
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--teal-l);color:var(--teal);">$</div>
+      <div class="dash-title">Ventas día / semana / mes</div>
+      <div class="dash-desc">Monto total · N° pedidos · comparativo período anterior</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--green-l);color:var(--green);">%</div>
+      <div class="dash-title">Ganancia neta real</div>
+      <div class="dash-desc">Margen por SKU y por tipo de cliente · desglosado CF vs mayorista</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--amber-l);color:var(--amber);">✱</div>
+      <div class="dash-title">Efectivo en calle</div>
+      <div class="dash-desc">Cobrado por repartidor · pendiente de rendición al dueño</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--coral-l);color:var(--coral);">!</div>
+      <div class="dash-title">Stock y alertas</div>
+      <div class="dash-desc">SKUs bajo mínimo · semáforo rojo / amarillo / verde</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--purple-l);color:var(--purple);">↑</div>
+      <div class="dash-title">Productos más vendidos</div>
+      <div class="dash-desc">Ranking por unidades y por monto · período seleccionable</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--blue-l);color:var(--blue);">⏳</div>
+      <div class="dash-title">Lista de espera</div>
+      <div class="dash-desc">Clientes esperando · total acumulado para el pedido del viernes</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--teal-l);color:var(--teal);">🎁</div>
+      <div class="dash-title">Inversión en regalos</div>
+      <div class="dash-desc">Costo de regalos por período · por cliente · por nivel · como % de ventas totales</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-icon" style="background:var(--gray-l);color:#555;">~</div>
+      <div class="dash-title">Mix por tipo de cliente</div>
+      <div class="dash-desc">% ventas CF vs mayorista · margen promedio ponderado real</div>
+    </div>
+    <div class="dash-card" style="grid-column:span 2;">
+      <div class="dash-icon" style="background:var(--cream);color:var(--amber);">⚡</div>
+      <div class="dash-title">Lista de compra semanal</div>
+      <div class="dash-desc">Borrador generado por LIBRA cada viernes · producto + código SM + cantidad sugerida + precio costo estimado · listo para revisar y ejecutar en el sitio de SM</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 07: STACK -->
+<div class="section" id="s-stack">
+  <div class="section-eyebrow">Sección 07</div>
+  <h2>Stack tecnológico</h2>
+  <div class="section-sub">Todo open source o free tier · ~$15–25 USD/mes total · simplificado vs versiones anteriores</div>
+
+  <table class="stack-table">
+    <thead>
+      <tr>
+        <th>Componente</th>
+        <th>Herramienta</th>
+        <th>Rol en el sistema</th>
+        <th>Costo</th>
+        <th>OS</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Catálogo + Dashboard</strong></td>
+        <td>GitHub Pages</td>
+        <td>Catálogo WA, formulario de stock inicial, dashboard LIBRA. Una sola URL pública permanente.</td>
+        <td class="cost-free">Gratis</td>
+        <td class="os-check">✓</td>
+      </tr>
+      <tr>
+        <td><strong>Base de datos</strong></td>
+        <td>Supabase</td>
+        <td>12 tablas · stock · pedidos · clientes · precios versionados · API REST nativa para agentes · backup diario automático</td>
+        <td class="cost-free">Gratis (free tier)</td>
+        <td class="os-check">✓</td>
+      </tr>
+      <tr>
+        <td><strong>Automatización</strong></td>
+        <td>n8n self-hosted</td>
+        <td>Orquesta todos los flujos entre WA, agentes IA y Supabase. Manejo de errores 3 niveles. Flujos entregados como JSON listos para importar.</td>
+        <td class="cost-free">Gratis (Railway)</td>
+        <td class="os-check">✓</td>
+      </tr>
+      <tr>
+        <td><strong>Agentes IA</strong></td>
+        <td>Claude API</td>
+        <td>LIBRA · IApedidos · IAwhatsapp. 3 agentes con contexto acotado. Incluye lógica de regalos, desambiguación y lista de compra.</td>
+        <td class="cost-low">~$5–15/mes</td>
+        <td style="color:#888;">—</td>
+      </tr>
+      <tr>
+        <td><strong>WhatsApp API</strong></td>
+        <td>360dialog / Twilio</td>
+        <td>Número WA Business dedicado al negocio. Clientes escriben directo. Webhooks entrantes a n8n.</td>
+        <td class="cost-low">~$5–10/mes</td>
+        <td style="color:#888;">—</td>
+      </tr>
+      <tr>
+        <td><strong>Hosting n8n</strong></td>
+        <td>Railway / Render</td>
+        <td>Servidor para n8n self-hosted. Deploy con un click desde GitHub.</td>
+        <td class="cost-free">Gratis (free tier)</td>
+        <td style="color:#888;">—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECCIÓN 08: DECISIONES -->
+<div class="section" id="s-decisiones">
+  <div class="section-eyebrow">Sección 08</div>
+  <h2>Registro completo de decisiones</h2>
+  <div class="section-sub">34 decisiones cerradas · 3 para fase 2 · 0 pendientes</div>
+
+  <table class="decision-table">
+    <thead>
+      <tr><th>Código</th><th>Decisión</th><th>Definición</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="d-code">INF-01</td><td><strong>Stack</strong></td><td>GitHub Pages + Supabase + n8n + Claude API + WA API. Sin Metabase — dashboard HTML propio.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">AGE-01</td><td><strong>Agentes totales</strong></td><td>3 agentes: LIBRA, IAwhatsapp, IApedidos. IAstock e IAcompra integrados como funciones de LIBRA.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">AGE-02</td><td><strong>IAcompra → función</strong></td><td>No es agente separado. Es la función <code>generar_lista_compra</code> de LIBRA que corre los jueves.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">AGE-03</td><td><strong>IAwhatsapp día 1</strong></td><td>Clientes escriben directo al número WA Business. Sin el dueño como intermediario desde el primer día.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">AGE-04</td><td><strong>Desambiguación</strong></td><td>IApedidos usa historial → infiere → confirma. Opciones numeradas si hay ambigüedad genuina. Nunca pide SKU.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">CAN-01</td><td><strong>Canales de venta</strong></td><td>Canal A: texto libre WA. Canal B: catálogo interactivo WA. Canal C: dashboard interno (dueño). Sin catálogo web público.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">CAN-02</td><td><strong>Catálogo web</strong></td><td>Solo para uso interno: carga de stock inicial y referencia de productos. No es canal de venta público.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">PRE-01</td><td><strong>Modelo de precios</strong></td><td>Tabla precios versionada. 3 listas. Cada producto cambia independientemente. Parseo mensual con aprobación obligatoria del dueño.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">PRE-02</td><td><strong>Costo para margen</strong></td><td>Precio del lote de compra (lista dist. vigente al momento del retiro). Registrado en <code>compras_items.precio_costo_unitario</code>.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">PRE-03</td><td><strong>Excepciones de precio</strong></td><td>Sin descuentos. Los regalos son ítems con <code>es_regalo=true</code> y precio $0. Stock se descuenta igual.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">PRE-04</td><td><strong>Jerarquía de precios</strong></td><td><code>tipo_default</code> del cliente → fallback CF. Dos niveles simples. Sin tabla de excepciones por cliente.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">LOG-01</td><td><strong>Cobro</strong></td><td>100% efectivo. Tres momentos distintos: cobro al cliente → confirmación WA → rendición al dueño.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">LOG-02</td><td><strong>Asignación repartidores</strong></td><td>Manual desde el dashboard en fase 1. Campo zona preparado en tabla repartidores para fase 2.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">LOG-03</td><td><strong>Dirección de entrega</strong></td><td>Campo en pedidos. Default = <code>clientes.direccion</code>. Sobrescribible pedido a pedido.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">LOG-04</td><td><strong>Cobertura geográfica</strong></td><td>Sin restricciones. Entrega en cualquier parte.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">LOG-05</td><td><strong>Notas de entrega</strong></td><td>Campo notas en pedidos. IAwhatsapp lo captura del mensaje del cliente y lo muestra al repartidor.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">OPE-01</td><td><strong>Día de corte semanal</strong></td><td>Jueves: LIBRA genera lista. Viernes: disponible en dashboard. Dueño ejecuta en SM el viernes.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">OPE-02</td><td><strong>Cancelaciones</strong></td><td>Solo el dueño puede cancelar desde el dashboard. LIBRA revierte el stock automáticamente.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">OPE-03</td><td><strong>Entrega fallida</strong></td><td>Estado <code>entrega_fallida</code>. IAwhatsapp coordina reentrega. Stock no se devuelve hasta cancelación definitiva.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">OPE-04</td><td><strong>Reclamos</strong></td><td>Fuera del MVP. Se agrega cuando aparezca el primer caso real.</td><td><span class="d-f2">Fase 2</span></td></tr>
+      <tr><td class="d-code">OPE-05</td><td><strong>Reporte diario</strong></td><td>Solo en dashboard. Sin mensaje automático. El dueño lo consulta cuando quiere.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">OPE-06</td><td><strong>Ciclo de vida cliente</strong></td><td>Solo <code>tipo_default</code> actual. Sin historial de cambios de tipo por ahora.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">OPE-07</td><td><strong>Límites de compra</strong></td><td>Sin límites automáticos. El criterio del dueño al revisar la lista reemplaza cualquier sugerencia.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">BD-01</td><td><strong>Concurrencia de stock</strong></td><td>Transacción atómica RPC en Supabase. Check y descuento en una sola operación. Sin race condition.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">BD-02</td><td><strong>Soft delete</strong></td><td>Nunca se borran registros. <code>activo=false</code> en clientes, productos, repartidores.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">BD-03</td><td><strong>Backup</strong></td><td>Supabase backup diario automático + copia en Google Sheet vía n8n como fallback secundario.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">BD-04</td><td><strong>Ajuste manual de stock</strong></td><td>Campo motivo + ejecutado_por en <code>movimientos_stock</code> tipo ajuste. Formulario en dashboard para corregir diferencias.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">BD-05</td><td><strong>Stock mínimo inicial</strong></td><td>Todos los productos arrancan con <code>stock_minimo = 0</code>. En fase inicial LIBRA solo sugiere comprar por lista de espera, no por stock bajo. El dueño ajusta los mínimos por producto desde el dashboard después de 4-8 semanas de datos reales.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">ERR-01</td><td><strong>Manejo de errores</strong></td><td>3 niveles en n8n: retry automático (30s/2min/5min) → WA al dueño → intervención manual en dashboard n8n.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">REG-01</td><td><strong>Regalos CF</strong></td><td>Por monto del pedido. N1 desde $10.000 → tope costo $878. N2 desde $25.000 → tope $2.421. N3 desde $50.000 → tope $4.449.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">REG-02</td><td><strong>Regalos mayoristas</strong></td><td>Por cantidad de unidades. N1 100-199u → tope $1.500. N2 200-299u → tope $2.500. N3 300+u → tope $3.500.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">REG-03</td><td><strong>Selección del regalo</strong></td><td>LIBRA arma combinación de productos con mayor stock sin superar el tope. Puede ser 1 o varios productos. IAwhatsapp lo comunica antes de confirmar.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">REG-04</td><td><strong>Criterio CF vs mayorista</strong></td><td>CF se mide por monto (compra pocas unidades de alto valor). Mayoristas por unidades (trabajan en volumen). LIBRA calcula ambos automáticamente.</td><td><span class="d-closed">Cerrado</span></td></tr>
+      <tr><td class="d-code">F2-01</td><td><strong>Asignación automática repartidores</strong></td><td>Fase 2. Campo zona en repartidores preparado en el modelo de datos.</td><td><span class="d-f2">Fase 2</span></td></tr>
+      <tr><td class="d-code">F2-02</td><td><strong>IAcompra ejecuta en SM</strong></td><td>Fase 2. Fase 1: genera lista, dueño ejecuta manualmente.</td><td><span class="d-f2">Fase 2</span></td></tr>
+      <tr><td class="d-code">F2-03</td><td><strong>Reclamos y devoluciones</strong></td><td>Fase 2. Se agrega cuando aparezca el primer caso real.</td><td><span class="d-f2">Fase 2</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(l => { if (l.textContent.toLowerCase().includes(id.substring(0,4)) || l.getAttribute('onclick').includes(id)) l.classList.add('active'); });
+}
+document.querySelectorAll('.nav-link').forEach(l => {
+  l.addEventListener('click', function() {
+    document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

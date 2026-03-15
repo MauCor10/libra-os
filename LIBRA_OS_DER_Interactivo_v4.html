@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIBRA OS · DER Interactivo v4.0</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--border:#2a2a2a;--border2:#333;
+  --text:#e8e4dc;--muted:#666;--muted2:#888;
+  --purple:#8b7cf8;--purple-bg:#1e1a2e;
+  --teal:#2dd4a0;--teal-bg:#0d1f1a;
+  --amber:#f59e0b;--amber-bg:#1f1700;
+  --coral:#f97066;--coral-bg:#1f1010;
+  --blue:#60a5fa;--blue-bg:#0d1a2e;
+  --green:#4ade80;--green-bg:#0d1f0d;
+  --gray:#888;--gray-bg:#1a1a1a;
+  --orange:#fb923c;--orange-bg:#1f1200;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;}
+
+.header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;}
+.header-title{font-size:20px;font-weight:600;letter-spacing:-0.02em;}
+.header-title span{color:var(--purple);}
+.header-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.1em;}
+.header-stats{display:flex;gap:20px;}
+.stat{text-align:right;}
+.stat-num{font-size:18px;font-weight:600;color:var(--purple);}
+.stat-label{font-size:10px;color:var(--muted);}
+
+.layout{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 74px);}
+.sidebar{border-right:1px solid var(--border);overflow-y:auto;padding:12px 0;}
+.sidebar-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:0 14px 8px;}
+.table-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:background .12s;border-left:3px solid transparent;}
+.table-item:hover{background:var(--surface);}
+.table-item.active{background:var(--surface2);border-left-color:var(--purple);}
+.table-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.table-name{font-size:13px;font-weight:500;}
+.table-count{font-size:10px;color:var(--muted);margin-left:auto;font-family:'JetBrains Mono',monospace;}
+
+.main{overflow:hidden;display:flex;flex-direction:column;}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;}
+.tab{padding:14px 16px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--text);border-bottom-color:var(--purple);}
+
+.panel{display:none;overflow-y:auto;flex:1;padding:20px;}
+.panel.active{display:block;}
+
+.table-detail{}
+.td-header{margin-bottom:16px;}
+.td-name{font-size:18px;font-weight:600;margin-bottom:4px;}
+.td-desc{font-size:13px;color:var(--muted2);line-height:1.6;}
+.td-rels{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.rel-badge{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 8px;border-radius:4px;background:var(--surface2);color:var(--muted2);border:1px solid var(--border2);}
+
+.fields-table{width:100%;border-collapse:collapse;}
+.fields-table th{text-align:left;padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface);}
+.fields-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.fields-table tr:last-child td{border-bottom:none;}
+.fields-table tr:hover td{background:var(--surface);}
+.f-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;}
+.f-pk{color:var(--amber);}
+.f-fk{color:var(--blue);}
+.f-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);}
+.f-badges{display:flex;flex-wrap:wrap;gap:4px;}
+.badge{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:500;}
+.b-pk{background:#2a1f00;color:var(--amber);border:1px solid #4a3800;}
+.b-fk{background:#0d1a2e;color:var(--blue);border:1px solid #1a3a5e;}
+.b-nn{background:#1a1f1a;color:#6b9e6b;border:1px solid #2a3f2a;}
+.b-def{background:var(--surface2);color:var(--muted2);border:1px solid var(--border2);}
+.b-uq{background:#1a1a2e;color:#8b8bf8;border:1px solid #2a2a4e;}
+.f-desc{font-size:12px;color:var(--muted2);line-height:1.5;}
+.f-vals{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px;}
+
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;}
+.ov-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.ov-dot{width:8px;height:8px;border-radius:50%;}
+.ov-name{font-weight:600;font-size:14px;}
+.ov-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto;}
+.ov-field{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);padding:2px 0;border-bottom:1px solid var(--border);}
+.ov-field:last-child{border-bottom:none;}
+
+.rel-panel{padding:16px 20px;}
+.der-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+.der-svg-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;background:var(--surface);}
+
+.gift-section{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:16px;}
+.gift-title{font-size:12px;font-weight:600;color:var(--purple);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;}
+.gift-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gift-card{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:12px;}
+.gift-seg{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
+.gift-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.gift-row:last-child{border-bottom:none;}
+.gift-level{font-family:'JetBrains Mono',monospace;font-size:11px;}
+.n1{color:var(--green);}
+.n2{color:var(--amber);}
+.n3{color:var(--coral);}
+.gift-tope{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">LIBRA <span>OS</span> · DER Interactivo</div>
+    <div class="header-sub">Modelo de datos · Versión 4.0 · Distribución Sagrada Madre</div>
+  </div>
+  <div class="header-stats">
+    <div class="stat"><div class="stat-num">12</div><div class="stat-label">tablas</div></div>
+    <div class="stat"><div class="stat-num">91</div><div class="stat-label">campos</div></div>
+    <div class="stat"><div class="stat-num">18</div><div class="stat-label">relaciones FK</div></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Tablas</div>
+    <div id="sidebar-list"></div>
+  </div>
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('detalle')">Detalle de tabla</div>
+      <div class="tab" onclick="showTab('overview')">Vista general</div>
+      <div class="tab" onclick="showTab('relaciones')">Mapa de relaciones</div>
+    </div>
+    <div class="panel active" id="panel-detalle"><div id="table-detail"></div></div>
+    <div class="panel" id="panel-overview"><div class="overview-grid" id="overview-grid"></div></div>
+    <div class="panel" id="panel-relaciones">
+      <div class="rel-panel">
+        <div class="der-legend" id="der-legend"></div>
+        <div class="der-svg-wrap">
+          <svg id="der-svg" viewBox="0 0 980 760" style="min-width:700px;width:100%;display:block;"></svg>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--muted);">Click en cualquier tabla para ver su detalle.</div>
+        <div class="gift-section">
+          <div class="gift-title">Lógica de regalos automáticos — referencia</div>
+          <div class="gift-grid">
+            <div class="gift-card">
+              <div class="gift-seg">Consumidor Final — por monto</div>
+              <div class="gift-row"><span class="gift-level n1">Nivel 1</span><span>desde $10.000</span><span class="gift-tope n1">tope $878</span></div>
+              <div class="gift-row"><span class="gift-level n2">Nivel 2</span><span>desde $25.000</span><span class="gift-tope n2">tope $2.421</span></div>
+              <div class="gift-row"><span class="gift-level n3">Nivel 3</span><span>desde $50.000</span><span class="gift-tope n3">tope $4.449</span></div>
+            </div>
+            <div class="gift-card">
+              <div class="gift-seg">Mayoristas — por unidades</div>
+              <div class="gift-row"><span class="gift-level n1">Nivel 1</span><span>100–199 u.</span><span class="gift-tope n1">tope $1.500</span></div>
+              <div class="gift-row"><span class="gift-level n2">Nivel 2</span><span>200–299 u.</span><span class="gift-tope n2">tope $2.500</span></div>
+              <div class="gift-row"><span class="gift-level n3">Nivel 3</span><span>300+ u.</span><span class="gift-tope n3">tope $3.500</span></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:10px;">LIBRA arma la combinación de productos con mayor stock_actual que no supere el tope. Registra como pedido_items con es_regalo=true y precio_unitario_snapshot=$0. Descuenta stock igual que ventas normales.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = {
+  productos:'#f59e0b', precios:'#f59e0b',
+  clientes:'#8b7cf8',
+  pedidos:'#2dd4a0', pedido_items:'#2dd4a0',
+  repartidores:'#f97066', cobros_repartidores:'#f97066',
+  movimientos_stock:'#60a5fa', lista_espera:'#60a5fa',
+  compras_proveedor:'#fb923c', compras_items:'#fb923c',
+  config:'#888'
+};
+
+const GROUPS = {
+  'Catálogo': { color: '#f59e0b', tables: ['productos','precios'] },
+  'Clientes': { color: '#8b7cf8', tables: ['clientes'] },
+  'Pedidos': { color: '#2dd4a0', tables: ['pedidos','pedido_items'] },
+  'Logística': { color: '#f97066', tables: ['repartidores','cobros_repartidores'] },
+  'Inventario': { color: '#60a5fa', tables: ['movimientos_stock','lista_espera'] },
+  'Compras': { color: '#fb923c', tables: ['compras_proveedor','compras_items'] },
+  'Sistema': { color: '#888', tables: ['config'] }
+};
+
+const TABLES = {
+  productos: {
+    color: '#f59e0b',
+    desc: 'Catálogo maestro de todos los productos de Sagrada Madre. Los precios viven en la tabla precios — acá solo está la información permanente del producto. El stock también vive acá para facilitar las consultas de disponibilidad.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único generado automáticamente por Supabase.', cls:'f-pk' },
+      { name:'codigo', type:'varchar(20)', badges:['NN','UNIQUE'], desc:'Código oficial de Sagrada Madre tal como figura en las listas PDF. Ej: 5920E, 300A. Nunca cambia para un mismo producto.', cls:'' },
+      { name:'nombre', type:'varchar(200)', badges:['NN'], desc:'Nombre completo del producto. Ej: "SAHUMERIO ARTESANO PALO SANTO - LAVANDA X30".', cls:'' },
+      { name:'linea', type:'varchar(100)', badges:['NN'], desc:'Línea o categoría del producto. Ej: "Artesano X30", "Ritual", "Palo Santo Sustentable". Usado para agrupar en el catálogo y para ordenar la lista de compra semanal.', cls:'' },
+      { name:'tasa_iva', type:'decimal(4,1)', badges:['NN','DEFAULT 21'], desc:'Tasa de IVA en porcentaje. Default 21%. Usada para calcular el precio con IVA dinámicamente (precio_sin_iva × (1 + tasa_iva/100)). Se guarda en pedido_items como tasa_iva_snapshot.', cls:'' },
+      { name:'stock_actual', type:'integer', badges:['NN','DEFAULT 0'], desc:'Unidades disponibles en depósito en tiempo real. Se actualiza en cada venta (decrece), en cada compra (crece) y en ajustes manuales. El descuento de stock se ejecuta mediante una función RPC atómica en Supabase (check + descuento en una sola operación) para evitar race condition si dos clientes piden el mismo producto simultáneamente.', cls:'' },
+      { name:'stock_minimo', type:'integer', badges:['NN','DEFAULT 0'], desc:'Umbral de alerta. Cuando stock_actual cae por debajo de este valor, LIBRA lo incluye en la lista de compra semanal. Arranca en 0 — con cero, LIBRA solo sugiere reponer cuando hay lista de espera, no por stock bajo. El dueño lo ajusta por producto desde el dashboard una vez que tiene datos reales de ventas (idealmente después de 4-8 semanas de operación).', cls:'' },
+      { name:'activo', type:'boolean', badges:['NN','DEFAULT true'], desc:'Soft delete. Si Sagrada Madre discontinúa un producto, activo=false lo oculta del catálogo sin borrar el historial de ventas.', cls:'' },
+      { name:'updated_at', type:'timestamp', badges:['NN'], desc:'Fecha y hora de la última modificación del registro. Se actualiza automáticamente en cada cambio de stock o metadatos.', cls:'' }
+    ],
+    relations: [['precios','1:N'],['pedido_items','1:N'],['movimientos_stock','1:N'],['lista_espera','1:N'],['compras_items','1:N']]
+  },
+
+  precios: {
+    color: '#f59e0b',
+    desc: 'Historial completo de todos los precios de todos los productos en las tres listas. Nunca se sobreescriben — cada actualización mensual agrega filas nuevas y cierra las anteriores con vigente_hasta. Permite calcular márgenes históricos exactos aunque los precios hayan cambiado.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del registro de precio.', cls:'f-pk' },
+      { name:'producto_id', type:'uuid', badges:['FK','NN'], desc:'Referencia al producto en la tabla productos.', cls:'f-fk' },
+      { name:'tipo_lista', type:'varchar(20)', badges:['NN'], desc:'A qué lista de precios pertenece este registro.', cls:'', vals:'dist = Lista Distribuidores (costo de compra) · mayorista = Lista Mayoristas (precio B2B) · cf = Lista Consumidor Final (precio retail)' },
+      { name:'precio_sin_iva', type:'decimal(12,2)', badges:['NN'], desc:'Precio neto sin IVA, exactamente como figura en el PDF de Sagrada Madre. El precio con IVA se calcula dinámicamente: precio_sin_iva × (1 + productos.tasa_iva/100).', cls:'' },
+      { name:'vigente_desde', type:'date', badges:['NN'], desc:'Fecha desde la cual este precio está en vigencia. Al actualizar el catálogo mensual, este campo marca el primer día del nuevo período.', cls:'' },
+      { name:'vigente_hasta', type:'date', badges:['DEFAULT null'], desc:'Fecha hasta la cual fue válido este precio. NULL = precio actualmente vigente. Al llegar una actualización, se completa con (vigente_desde_nuevo - 1 día). El historial queda intacto.', cls:'' }
+    ],
+    relations: [['productos','N:1']]
+  },
+
+  clientes: {
+    color: '#8b7cf8',
+    desc: 'Registro de todos los clientes: consumidores finales, locales minoristas y mayoristas. El tipo_default determina qué lista de precios aplica. IAwhatsapp identifica al cliente por su número de teléfono WA — es el identificador principal para las conversaciones.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del cliente.', cls:'f-pk' },
+      { name:'nombre', type:'varchar(200)', badges:['NN'], desc:'Nombre completo de la persona o razón social del negocio.', cls:'' },
+      { name:'telefono_wa', type:'varchar(30)', badges:['NN','UNIQUE'], desc:'Número WhatsApp en formato internacional (+5491155556666). Identificador principal para que IAwhatsapp reconozca al cliente. Debe ser único en el sistema.', cls:'' },
+      { name:'tipo_default', type:'varchar(20)', badges:['NN','DEFAULT cf'], desc:'Tipo de precio aplicado por defecto. IApedidos usa este campo para seleccionar la lista de precios correcta.', cls:'', vals:'cf = consumidor final · mayorista = precio mayorista · dist = precio distribuidor' },
+      { name:'direccion', type:'text', badges:[], desc:'Dirección principal de entrega. Se copia automáticamente al campo pedidos.direccion_entrega al crear un pedido, pero puede sobrescribirse pedido a pedido.', cls:'' },
+      { name:'notas', type:'text', badges:[], desc:'Preferencias y contexto del cliente guardados por IApedidos. Ej: "Prefiere Artesano sobre SM x20 cuando hay ambigüedad". Se actualiza automáticamente tras cada pedido que aclare preferencias.', cls:'' },
+      { name:'activo', type:'boolean', badges:['NN','DEFAULT true'], desc:'Soft delete. activo=false oculta al cliente sin borrar su historial.', cls:'' },
+      { name:'created_at', type:'timestamp', badges:['NN'], desc:'Fecha de alta del cliente en el sistema.', cls:'' }
+    ],
+    relations: [['pedidos','1:N'],['lista_espera','1:N']]
+  },
+
+  pedidos: {
+    color: '#2dd4a0',
+    desc: 'Registro central de todos los pedidos del negocio. Guarda snapshots financieros al momento de la venta — subtotal, IVA y total son calculados por LIBRA y guardados aquí para que los repartidores siempre tengan el monto correcto a cobrar. Los ítems individuales viven en pedido_items.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único. Los primeros 8 caracteres (ej: A1B2C3D4) se usan como número de pedido visible para el cliente y el armador.', cls:'f-pk' },
+      { name:'cliente_id', type:'uuid', badges:['FK','NN'], desc:'Cliente que realizó el pedido.', cls:'f-fk' },
+      { name:'repartidor_id', type:'uuid', badges:['FK'], desc:'Repartidor asignado. NULL hasta que el dueño lo asigne desde el dashboard.', cls:'f-fk' },
+      { name:'canal', type:'varchar(20)', badges:['NN'], desc:'Canal por el que entró el pedido al sistema.', cls:'', vals:'wa = WhatsApp (texto libre o catálogo interactivo) · dashboard = cargado por el dueño' },
+      { name:'estado', type:'varchar(30)', badges:['NN','DEFAULT recibido'], desc:'Estado actual en el ciclo de vida.', cls:'', vals:'recibido → verificando_stock → parcialmente_confirmado → confirmado → en_preparacion → en_reparto → entregado_cobrado | cancelado · entrega_fallida · reprogramado · error' },
+      { name:'direccion_entrega', type:'text', badges:[], desc:'Dirección de entrega para este pedido específico. Por defecto copia clientes.direccion al crear el pedido. Sobrescribible pedido a pedido.', cls:'' },
+      { name:'notas', type:'text', badges:[], desc:'Notas de entrega capturadas del mensaje del cliente (ej: "timbrar dos veces", "edificio sin ascensor"). IAwhatsapp las extrae del texto y las incluye en la notificación al repartidor.', cls:'' },
+      { name:'subtotal', type:'decimal(14,2)', badges:['NN','DEFAULT 0'], desc:'Suma de todos los subtotal_item sin IVA. Calculado por LIBRA al confirmar.', cls:'' },
+      { name:'iva_total', type:'decimal(14,2)', badges:['NN','DEFAULT 0'], desc:'Suma del IVA de todos los ítems. Cada ítem puede tener tasa diferente según el producto.', cls:'' },
+      { name:'total', type:'decimal(14,2)', badges:['NN','DEFAULT 0'], desc:'Total con IVA. Es el monto exacto que debe cobrar el repartidor en efectivo.', cls:'' },
+      { name:'created_at', type:'timestamp', badges:['NN'], desc:'Fecha y hora exacta en que entró el pedido al sistema.', cls:'' }
+    ],
+    relations: [['clientes','N:1'],['repartidores','N:1'],['pedido_items','1:N'],['cobros_repartidores','1:1']]
+  },
+
+  pedido_items: {
+    color: '#2dd4a0',
+    desc: 'Cada línea de producto de un pedido. Guarda snapshots de precio, costo e IVA al momento de la venta — esto garantiza que el historial financiero sea exacto aunque los precios cambien en el futuro. Los regalos son ítems normales con es_regalo=true y precio_unitario_snapshot=$0.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del ítem.', cls:'f-pk' },
+      { name:'pedido_id', type:'uuid', badges:['FK','NN'], desc:'Pedido al que pertenece este ítem.', cls:'f-fk' },
+      { name:'producto_id', type:'uuid', badges:['FK','NN'], desc:'Producto de esta línea.', cls:'f-fk' },
+      { name:'cantidad', type:'integer', badges:['NN'], desc:'Unidades del pedido. Para regalos también es positivo — el precio es $0 pero la cantidad es real y descuenta stock.', cls:'' },
+      { name:'precio_unitario_snapshot', type:'decimal(12,2)', badges:['NN'], desc:'Precio de venta sin IVA al momento de confirmar. Snapshot inmutable. Para ítems con es_regalo=true: 0.00.', cls:'' },
+      { name:'costo_unitario_snapshot', type:'decimal(12,2)', badges:['NN'], desc:'Precio de la lista distribuidores vigente al momento de la venta. Permite calcular el margen real histórico aunque los precios cambien después. Para regalos: costo real del producto (no $0).', cls:'' },
+      { name:'tasa_iva_snapshot', type:'decimal(4,1)', badges:['NN'], desc:'Tasa de IVA del producto al momento de la venta. Snapshot por si la tasa cambia en el futuro.', cls:'' },
+      { name:'es_regalo', type:'boolean', badges:['NN','DEFAULT false'], desc:'true = este ítem es un regalo automático. El stock se descuenta igual. El costo se contabiliza como inversión en fidelización en el dashboard. precio_unitario_snapshot = 0.', cls:'' },
+      { name:'estado_item', type:'varchar(20)', badges:['DEFAULT confirmado'], desc:'Estado específico de este ítem dentro del pedido. Permite que pedidos con faltantes parciales tengan algunos ítems confirmados y otros en lista de espera.', cls:'', vals:'confirmado · en_espera · cancelado_item' }
+    ],
+    relations: [['pedidos','N:1'],['productos','N:1']]
+  },
+
+  repartidores: {
+    color: '#f97066',
+    desc: 'Registro de los repartidores del negocio. IAwhatsapp usa el telefono_wa para enviarles las instrucciones de entrega. El campo zona está preparado para la fase 2 de asignación automática.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del repartidor.', cls:'f-pk' },
+      { name:'nombre', type:'varchar(100)', badges:['NN'], desc:'Nombre del repartidor.', cls:'' },
+      { name:'telefono_wa', type:'varchar(30)', badges:['NN','UNIQUE'], desc:'Número WhatsApp del repartidor. IAwhatsapp le envía dirección, monto a cobrar, notas y número de pedido.', cls:'' },
+      { name:'zona', type:'varchar(100)', badges:[], desc:'Zona geográfica de cobertura. NULL en fase 1. Se usa en fase 2 para asignación automática según la dirección del pedido.', cls:'' },
+      { name:'activo', type:'boolean', badges:['NN','DEFAULT true'], desc:'Soft delete. activo=false excluye al repartidor de la lista de asignación.', cls:'' }
+    ],
+    relations: [['pedidos','1:N'],['cobros_repartidores','1:N']]
+  },
+
+  cobros_repartidores: {
+    color: '#f97066',
+    desc: 'Registro del ciclo de cobro de cada pedido. Separa en tres momentos distintos: cuándo se entregó, cuándo se cobró del cliente, y cuándo el repartidor rindió el efectivo al dueño. El monto en "efectivo en calle" del dashboard surge de registros con fecha_cobro completo pero fecha_rendicion NULL.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del registro de cobro.', cls:'f-pk' },
+      { name:'pedido_id', type:'uuid', badges:['FK','NN','UNIQUE'], desc:'Pedido al que corresponde. Relación 1:1 — un pedido tiene exactamente un registro de cobro.', cls:'f-fk' },
+      { name:'repartidor_id', type:'uuid', badges:['FK','NN'], desc:'Repartidor que realizó la entrega y cobró.', cls:'f-fk' },
+      { name:'monto', type:'decimal(14,2)', badges:['NN'], desc:'Monto cobrado al cliente. Debe coincidir con pedidos.total. Registrado por IAwhatsapp cuando el repartidor confirma.', cls:'' },
+      { name:'fecha_entrega', type:'timestamp', badges:[], desc:'Momento en que el repartidor confirmó la entrega. NULL hasta la confirmación.', cls:'' },
+      { name:'fecha_cobro', type:'timestamp', badges:[], desc:'Momento en que el repartidor confirmó que cobró el efectivo. Normalmente simultáneo con fecha_entrega.', cls:'' },
+      { name:'fecha_rendicion', type:'timestamp', badges:[], desc:'Momento en que el repartidor entregó el efectivo al dueño. NULL = el dinero está "en calle". El dashboard muestra la suma de montos con fecha_cobro completo pero fecha_rendicion NULL como "efectivo en calle".', cls:'' },
+      { name:'confirmado', type:'boolean', badges:['NN','DEFAULT false'], desc:'true = ciclo de cobro cerrado (entregado + cobrado + rendido). LIBRA lo usa para calcular la ganancia neta real en el dashboard.', cls:'' }
+    ],
+    relations: [['pedidos','1:1'],['repartidores','N:1']]
+  },
+
+  movimientos_stock: {
+    color: '#60a5fa',
+    desc: 'Log inmutable de todos los movimientos de inventario. Nunca se borra. Permite reconstruir el stock en cualquier momento histórico. Para ventas: referencia_id apunta a pedido_items.id. Para compras: apunta a compras_items.id. Para ajustes manuales: motivo y ejecutado_por documentan quién hizo el cambio y por qué.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del movimiento.', cls:'f-pk' },
+      { name:'producto_id', type:'uuid', badges:['FK','NN'], desc:'Producto afectado por el movimiento.', cls:'f-fk' },
+      { name:'tipo', type:'varchar(20)', badges:['NN'], desc:'Naturaleza del movimiento.', cls:'', vals:'venta = salida por pedido · regalo = salida por regalo (es_regalo=true) · compra = entrada por retiro en SM · ajuste = corrección manual de diferencia de stock' },
+      { name:'cantidad', type:'integer', badges:['NN'], desc:'Unidades del movimiento. Positivo = entrada (compra). Negativo = salida (venta, regalo). El sistema aplica el signo automáticamente según el tipo.', cls:'' },
+      { name:'stock_resultante', type:'integer', badges:['NN'], desc:'Valor de stock_actual después de aplicar este movimiento. Permite auditoría y reconstrucción histórica sin recalcular.', cls:'' },
+      { name:'referencia_id', type:'uuid', badges:[], desc:'ID del origen del movimiento. Para ventas/regalos: pedido_items.id. Para compras: compras_items.id. Para ajustes: NULL.', cls:'' },
+      { name:'motivo', type:'text', badges:[], desc:'Motivo del movimiento. Obligatorio para ajustes manuales (ej: "Diferencia en conteo físico mensual"). Opcional para ventas y compras.', cls:'' },
+      { name:'ejecutado_por', type:'varchar(50)', badges:[], desc:'Quién ejecutó el movimiento. Para ventas/compras: "LIBRA". Para ajustes manuales: nombre del dueño.', cls:'' },
+      { name:'created_at', type:'timestamp', badges:['NN'], desc:'Fecha y hora exacta del movimiento. Inmutable.', cls:'' }
+    ],
+    relations: [['productos','N:1']]
+  },
+
+  lista_espera: {
+    color: '#60a5fa',
+    desc: 'Cola FIFO de clientes que pidieron productos sin stock. LIBRA la consolida cada jueves para incluir esas cantidades en la lista de compra semanal. Cuando llega el stock nuevo, IAwhatsapp notifica a los clientes en orden de prioridad.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del registro de espera.', cls:'f-pk' },
+      { name:'cliente_id', type:'uuid', badges:['FK','NN'], desc:'Cliente que está esperando el producto.', cls:'f-fk' },
+      { name:'producto_id', type:'uuid', badges:['FK','NN'], desc:'Producto que el cliente está esperando.', cls:'f-fk' },
+      { name:'cantidad', type:'integer', badges:['NN'], desc:'Unidades que el cliente quiere. LIBRA suma todas las cantidades de lista_espera al calcular el pedido semanal a SM.', cls:'' },
+      { name:'semana_corte', type:'date', badges:['NN'], desc:'Semana en que se consolidará este pedido. Generalmente el próximo jueves.', cls:'' },
+      { name:'prioridad', type:'integer', badges:['NN'], desc:'Orden FIFO asignado automáticamente. Los clientes con menor número se notifican primero cuando llega el stock.', cls:'' },
+      { name:'notificado', type:'boolean', badges:['NN','DEFAULT false'], desc:'true = IAwhatsapp ya avisó al cliente que el stock llegó. Evita notificaciones duplicadas.', cls:'' },
+      { name:'created_at', type:'timestamp', badges:['NN'], desc:'Momento en que el cliente entró a la lista de espera. Define el orden FIFO.', cls:'' }
+    ],
+    relations: [['clientes','N:1'],['productos','N:1']]
+  },
+
+  compras_proveedor: {
+    color: '#fb923c',
+    desc: 'Registro de cada pedido realizado a Sagrada Madre. Generado por LIBRA como borrador el viernes, ejecutado manualmente por el dueño. El campo aprobado_por documenta que el dueño revisó y aprobó antes de ejecutar.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único de la compra.', cls:'f-pk' },
+      { name:'estado', type:'varchar(20)', badges:['NN','DEFAULT borrador'], desc:'Estado del pedido de compra.', cls:'', vals:'borrador = generado por LIBRA, pendiente de revisión · aprobado = dueño confirmó · enviado = pedido hecho en SM · recibido = mercadería en depósito' },
+      { name:'total_estimado', type:'decimal(14,2)', badges:[], desc:'Suma estimada del pedido usando precios de la lista distribuidores vigente. Puede diferir del total real si hay cambios de precio entre la generación y el retiro.', cls:'' },
+      { name:'aprobado_por', type:'varchar(100)', badges:[], desc:'Nombre del dueño que aprobó el pedido. NULL hasta la aprobación. Documenta el human-in-the-loop obligatorio.', cls:'' },
+      { name:'fecha_pedido', type:'date', badges:[], desc:'Fecha en que se hizo el pedido en el sitio de SM.', cls:'' },
+      { name:'fecha_retiro', type:'date', badges:[], desc:'Fecha en que se retiró la mercadería en SM y se descargó en depósito.', cls:'' },
+      { name:'created_at', type:'timestamp', badges:['NN'], desc:'Fecha en que LIBRA generó el borrador del pedido.', cls:'' }
+    ],
+    relations: [['compras_items','1:N']]
+  },
+
+  compras_items: {
+    color: '#fb923c',
+    desc: 'Cada producto de una compra a Sagrada Madre. El precio_costo_unitario registrado acá es el que se usa como costo_unitario_snapshot en las ventas posteriores de esas unidades.',
+    fields: [
+      { name:'id', type:'uuid', badges:['PK'], desc:'Identificador único del ítem de compra.', cls:'f-pk' },
+      { name:'compra_id', type:'uuid', badges:['FK','NN'], desc:'Compra a la que pertenece este ítem.', cls:'f-fk' },
+      { name:'producto_id', type:'uuid', badges:['FK','NN'], desc:'Producto comprado.', cls:'f-fk' },
+      { name:'cantidad', type:'integer', badges:['NN'], desc:'Unidades compradas en este lote.', cls:'' },
+      { name:'precio_costo_unitario', type:'decimal(12,2)', badges:['NN'], desc:'Precio de la lista distribuidores vigente al momento del retiro. Este valor se convierte en el costo_unitario_snapshot de las ventas de estas unidades. Si el precio subió entre el pedido y el retiro, se carga el precio real pagado.', cls:'' },
+      { name:'subtotal', type:'decimal(14,2)', badges:['NN'], desc:'cantidad × precio_costo_unitario. Para el total de la compra.', cls:'' }
+    ],
+    relations: [['compras_proveedor','N:1'],['productos','N:1']]
+  },
+
+  config: {
+    color: '#888',
+    desc: 'Parámetros de configuración del sistema. Permite ajustar comportamientos sin modificar código. LIBRA lee esta tabla para saber, por ejemplo, si debe enviar la lista de compra por WA además del dashboard.',
+    fields: [
+      { name:'clave', type:'varchar(100)', badges:['PK'], desc:'Nombre del parámetro. Ej: "dia_corte_semanal", "enviar_lista_por_wa", "notificar_stock_bajo".', cls:'f-pk' },
+      { name:'valor', type:'text', badges:['NN'], desc:'Valor del parámetro en texto. Los agentes convierten al tipo correcto (número, booleano, etc.) al leerlo.', cls:'' },
+      { name:'descripcion', type:'text', badges:[], desc:'Descripción legible del parámetro para que el dueño entienda qué controla.', cls:'' },
+      { name:'updated_at', type:'timestamp', badges:[], desc:'Última actualización del parámetro.', cls:'' },
+      { name:'updated_by', type:'varchar(50)', badges:[], desc:'Quién actualizó el parámetro (dueño o LIBRA).', cls:'' }
+    ],
+    relations: []
+  }
+};
+
+const TABLE_ORDER = ['productos','precios','clientes','pedidos','pedido_items','repartidores','cobros_repartidores','movimientos_stock','lista_espera','compras_proveedor','compras_items','config'];
+
+let currentTable = 'productos';
+
+function buildSidebar() {
+  const list = document.getElementById('sidebar-list');
+  TABLE_ORDER.forEach(tname => {
+    const t = TABLES[tname];
+    const div = document.createElement('div');
+    div.className = 'table-item' + (tname === currentTable ? ' active' : '');
+    div.innerHTML = `<div class="table-dot" style="background:${t.color}"></div><div class="table-name">${tname}</div><div class="table-count">${t.fields.length}</div>`;
+    div.onclick = () => showTable(tname);
+    list.appendChild(div);
+  });
+}
+
+function showTable(tname) {
+  currentTable = tname;
+  document.querySelectorAll('.table-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.table-item').forEach(i => {
+    if (i.querySelector('.table-name').textContent === tname) i.classList.add('active');
+  });
+  renderDetail(tname);
+  showTab('detalle');
+}
+
+function renderDetail(tname) {
+  const t = TABLES[tname];
+  const detail = document.getElementById('table-detail');
+  const relsHtml = t.relations.map(([r, type]) =>
+    `<span class="rel-badge" onclick="showTable('${r}')" style="cursor:pointer;color:${TABLES[r]?.color || '#888'}">${r} <span style="opacity:.6">${type}</span></span>`
+  ).join('');
+
+  detail.innerHTML = `
+    <div class="td-header">
+      <div class="td-name" style="color:${t.color}">${tname}</div>
+      <div class="td-desc">${t.desc}</div>
+      ${t.relations.length > 0 ? `<div class="td-rels">${relsHtml}</div>` : ''}
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Constraints</th><th>Descripción</th></tr></thead>
+      <tbody>${t.fields.map(f => `
+        <tr>
+          <td><span class="f-name ${f.cls}">${f.name}</span></td>
+          <td><span class="f-type">${f.type}</span></td>
+          <td><div class="f-badges">${f.badges.map(b => {
+            const cls = b==='PK'?'b-pk':b==='FK'?'b-fk':b==='NN'?'b-nn':b==='UNIQUE'?'b-uq':'b-def';
+            return `<span class="badge ${cls}">${b}</span>`;
+          }).join('')}</div></td>
+          <td><div class="f-desc">${f.desc}${f.vals?`<div class="f-vals">${f.vals}</div>`:''}</div></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function buildOverview() {
+  const grid = document.getElementById('overview-grid');
+  TABLE_ORDER.forEach(tname => {
+    const t = TABLES[tname];
+    const card = document.createElement('div');
+    card.className = 'ov-card';
+    card.style.cursor = 'pointer';
+    card.onclick = () => showTable(tname);
+    card.innerHTML = `
+      <div class="ov-header">
+        <div class="ov-dot" style="background:${t.color}"></div>
+        <div class="ov-name">${tname}</div>
+        <div class="ov-count">${t.fields.length} campos</div>
+      </div>
+      ${t.fields.map(f => `<div class="ov-field">${f.name} <span style="color:${f.cls==='f-pk'?'#f59e0b':f.cls==='f-fk'?'#60a5fa':'#555'};opacity:.7">${f.type}</span></div>`).join('')}`;
+    grid.appendChild(card);
+  });
+}
+
+function buildLegend() {
+  const legend = document.getElementById('der-legend');
+  Object.entries(GROUPS).forEach(([name, g]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<div class="legend-dot" style="background:${g.color}"></div><span>${name}</span>`;
+    legend.appendChild(item);
+  });
+}
+
+function buildDER() {
+  const svg = document.getElementById('der-svg');
+  const positions = {
+    productos:      { x: 390, y: 30  },
+    precios:        { x: 600, y: 30  },
+    clientes:       { x: 130, y: 30  },
+    pedidos:        { x: 390, y: 230 },
+    pedido_items:   { x: 600, y: 230 },
+    repartidores:   { x: 130, y: 430 },
+    cobros_repartidores: { x: 390, y: 430 },
+    movimientos_stock:   { x: 700, y: 430 },
+    lista_espera:   { x: 130, y: 230 },
+    compras_proveedor:  { x: 700, y: 600 },
+    compras_items:  { x: 500, y: 600 },
+    config:         { x: 130, y: 600 }
+  };
+  const W = 160, H = 52;
+
+  const allRelations = [
+    ['productos','precios','1:N'],
+    ['productos','pedido_items','1:N'],
+    ['productos','movimientos_stock','1:N'],
+    ['productos','lista_espera','1:N'],
+    ['productos','compras_items','1:N'],
+    ['clientes','pedidos','1:N'],
+    ['clientes','lista_espera','1:N'],
+    ['pedidos','pedido_items','1:N'],
+    ['pedidos','cobros_repartidores','1:1'],
+    ['repartidores','pedidos','1:N'],
+    ['repartidores','cobros_repartidores','1:N'],
+    ['compras_proveedor','compras_items','1:N'],
+    ['compras_items','productos','N:1'],
+  ];
+
+  let svgContent = `<defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M2 2L8 5L2 8" fill="none" stroke="#444" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>`;
+
+  allRelations.forEach(([from, to, type]) => {
+    const fp = positions[from], tp = positions[to];
+    if (!fp || !tp) return;
+    const fx = fp.x + W/2, fy = fp.y + H/2;
+    const tx = tp.x + W/2, ty = tp.y + H/2;
+    const color = TABLES[from]?.color || '#444';
+    svgContent += `<line x1="${fx}" y1="${fy}" x2="${tx}" y2="${ty}" stroke="${color}" stroke-width="1.5" stroke-opacity=".5" marker-end="url(#arr)"/>
+    <text x="${(fx+tx)/2}" y="${(fy+ty)/2-4}" font-family="JetBrains Mono,monospace" font-size="9" fill="#666" text-anchor="middle">${type}</text>`;
+  });
+
+  TABLE_ORDER.forEach(tname => {
+    const p = positions[tname];
+    if (!p) return;
+    const t = TABLES[tname];
+    svgContent += `<g onclick="showTable('${tname}')" style="cursor:pointer">
+      <rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="6" fill="${t.color}22" stroke="${t.color}" stroke-width="1.5"/>
+      <text x="${p.x+W/2}" y="${p.y+18}" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" fill="${t.color}" text-anchor="middle">${tname}</text>
+      <text x="${p.x+W/2}" y="${p.y+34}" font-family="JetBrains Mono,monospace" font-size="10" fill="#666" text-anchor="middle">${t.fields.length} campos · ${t.relations.length} FK</text>
+    </g>`;
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+function showTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tabName).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.getAttribute('onclick').includes(tabName)) t.classList.add('active');
+  });
+}
+
+buildSidebar();
+renderDetail('productos');
+buildOverview();
+buildLegend();
+buildDER();
+</script>
+</body>
+</html>
