@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIBRA OS · Ingreso de Stock</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#111; --surface2:#1a1a1a;
+  --border:#222; --border2:#2a2a2a; --text:#e8e4dc;
+  --muted:#555; --muted2:#777;
+  --green:#2dd4a0; --green-bg:rgba(45,212,160,.08);
+  --amber:#f59e0b; --amber-bg:rgba(245,158,11,.08);
+  --coral:#f97066; --coral-bg:rgba(249,112,102,.08);
+  --gold:#d4a843; --gold-bg:rgba(212,168,67,.08);
+  --blue:#60a5fa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:14px;min-height:100vh;}
+
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100;}
+.nav-brand{font-size:18px;font-weight:700;letter-spacing:-.02em;}
+.nav-brand span{color:var(--gold);}
+.nav-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);}
+
+.main{padding:28px;max-width:1000px;margin:0 auto;}
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;margin-top:32px;}
+.section-label:first-child{margin-top:0;}
+
+/* BÚSQUEDA */
+.search-wrap{position:relative;margin-bottom:8px;}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:14px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--gold);}
+.search-input::placeholder{color:var(--muted);}
+.search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;z-index:50;max-height:280px;overflow-y:auto;display:none;}
+.search-results.open{display:block;}
+.search-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
+.search-item:last-child{border-bottom:none;}
+.search-item:hover{background:var(--surface);}
+.search-item-name{font-size:13px;font-weight:500;}
+.search-item-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:3px;}
+
+/* TABLA DE ITEMS */
+.items-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;}
+.items-header{display:grid;grid-template-columns:1fr 100px 120px 120px 40px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.item-row{display:grid;grid-template-columns:1fr 100px 120px 120px 40px;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;}
+.item-row:last-child{border-bottom:none;}
+.item-name{font-size:12px;font-weight:500;line-height:1.4;}
+.item-linea{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:2px;}
+.item-input{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;width:100%;outline:none;text-align:right;transition:border-color .2s;}
+.item-input:focus{border-color:var(--gold);}
+.item-costo-auto{font-family:'DM Mono',monospace;font-size:12px;color:var(--green);text-align:right;}
+.item-costo-nota{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:right;margin-top:2px;}
+.item-subtotal{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--amber);text-align:right;}
+.btn-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;border-radius:4px;transition:color .2s;display:flex;align-items:center;justify-content:center;}
+.btn-remove:hover{color:var(--coral);}
+.empty-items{padding:40px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;}
+
+/* RESUMEN */
+.resumen-card{background:var(--surface);border:1px solid var(--gold);border-radius:10px;padding:24px;margin-bottom:24px;}
+.resumen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:20px;}
+.res-item{}
+.res-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;}
+.res-val{font-size:24px;font-weight:700;letter-spacing:-.02em;}
+.res-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* FECHA */
+.fecha-wrap{display:flex;gap:12px;align-items:center;margin-bottom:20px;}
+.fecha-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);}
+.fecha-input{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;}
+.fecha-input:focus{border-color:var(--gold);}
+
+/* BOTONES */
+.btn-primary{background:var(--gold);color:#000;border:none;border-radius:8px;padding:14px 28px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;width:100%;}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+
+/* MODAL SQL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:700px;max-width:90vw;max-height:85vh;overflow-y:auto;padding:28px;}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:4px;}
+.modal-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);margin-bottom:20px;}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;margin-top:-4px;}
+.sql-block{background:#0a0a0a;border:1px solid var(--border2);border-radius:8px;padding:16px;font-family:'DM Mono',monospace;font-size:11px;color:#e8e4dc;white-space:pre-wrap;max-height:400px;overflow-y:auto;line-height:1.6;}
+.btn-copy{display:block;width:100%;padding:12px;margin-top:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-copy:hover{border-color:var(--gold);color:var(--gold);}
+
+.loading{display:flex;align-items:center;gap:8px;padding:20px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;}
+.spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--green);border-radius:8px;padding:12px 20px;font-family:'DM Mono',monospace;font-size:12px;color:var(--green);z-index:300;opacity:0;transition:opacity .3s;}
+.toast.show{opacity:1;}
+
+@media(max-width:700px){
+  .items-header{grid-template-columns:1fr 80px 100px 40px;}.items-header .h-costo{display:none;}
+  .item-row{grid-template-columns:1fr 80px 100px 40px;}.item-costo-auto{display:none;}
+  .resumen-grid{grid-template-columns:1fr 1fr;}
+  .main{padding:16px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div>
+    <div class="nav-brand">LIBRA <span>OS</span></div>
+    <div class="nav-sub">Ingreso de stock · Sagrada Madre</div>
+  </div>
+  <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2)" id="nav-estado">cargando...</div>
+</nav>
+
+<div class="main">
+
+  <!-- BÚSQUEDA -->
+  <div class="section-label">Agregar productos</div>
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="search" placeholder="Buscá por nombre o línea... (ej: palo santo, bombita, artesano)" autocomplete="off">
+    <div class="search-results" id="search-results"></div>
+  </div>
+  <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px" id="search-hint">cargando catálogo...</div>
+
+  <!-- ITEMS -->
+  <div class="section-label">Productos del retiro</div>
+  <div class="items-card">
+    <div class="items-header">
+      <div>Producto</div>
+      <div style="text-align:right">Cantidad</div>
+      <div style="text-align:right" class="h-costo">Costo unit. (dist)</div>
+      <div style="text-align:right">Subtotal</div>
+      <div></div>
+    </div>
+    <div id="items-list">
+      <div class="empty-items">Buscá productos arriba para agregarlos al retiro</div>
+    </div>
+  </div>
+
+  <!-- RESUMEN Y EXPORTAR -->
+  <div class="section-label">Resumen del retiro</div>
+  <div class="resumen-card">
+    <div class="fecha-wrap">
+      <span class="fecha-label">Fecha de retiro:</span>
+      <input type="date" class="fecha-input" id="fecha-retiro">
+    </div>
+    <div class="resumen-grid">
+      <div class="res-item">
+        <div class="res-label">Productos</div>
+        <div class="res-val" id="res-productos" style="color:var(--blue)">0</div>
+        <div class="res-sub">SKUs distintos</div>
+      </div>
+      <div class="res-item">
+        <div class="res-label">Unidades totales</div>
+        <div class="res-val" id="res-unidades" style="color:var(--green)">0</div>
+        <div class="res-sub">a ingresar al depósito</div>
+      </div>
+      <div class="res-item">
+        <div class="res-label">Costo total del lote</div>
+        <div class="res-val" id="res-costo" style="color:var(--gold)">$ 0</div>
+        <div class="res-sub">a precio distribuidor</div>
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-exportar" disabled onclick="generarSQL()">
+      Generar SQL para Supabase
+    </button>
+  </div>
+
+</div>
+
+<!-- MODAL SQL -->
+<div class="modal-overlay" id="modal" onclick="cerrarModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">×</button>
+    <div class="modal-title">SQL de ingreso de stock</div>
+    <div class="modal-sub">Copiá y pegá en el SQL Editor de Supabase · luego ejecutá</div>
+    <div class="sql-block" id="sql-output"></div>
+    <button class="btn-copy" onclick="copiarSQL()">Copiar SQL al portapapeles</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">SQL copiado</div>
+
+<script>
+const SUPA_URL = 'https://iqvtirnnttxjqdgtjpfw.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxdnRpcm5udHR4anFkZ3RqcGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTA0MDAsImV4cCI6MjA4OTE4NjQwMH0.sr-BfjtX5WgQl4YSx4aOj0hTXVAs1HYYu1Qk1xBYqUc';
+const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+
+async function q(path) {
+  const r = await fetch(SUPA_URL + '/rest/v1/' + path, { headers: H });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+const pesos = n => '$ ' + Math.round(n||0).toLocaleString('es-AR');
+
+let productos = [];   // catálogo completo
+let items = {};       // { producto_id: { producto, cantidad, costoUnit } }
+
+// ── CARGA INICIAL ─────────────────────────────────────────────
+async function init() {
+  try {
+    // Cargar productos con precio dist vigente
+    const prods = await q(`productos?select=id,codigo,nombre,linea,stock_actual,costo_promedio&activo=eq.true&order=nombre.asc`);
+    const precios = await q(`precios?select=producto_id,precio_sin_iva&tipo_lista=eq.dist&vigente_hasta=is.null`);
+
+    const precioMap = {};
+    precios.forEach(p => { precioMap[p.producto_id] = parseFloat(p.precio_sin_iva||0); });
+
+    productos = prods.map(p => ({
+      ...p,
+      precio_dist: precioMap[p.id] || parseFloat(p.costo_promedio||0)
+    }));
+
+    document.getElementById('search-hint').textContent = `${productos.length} productos cargados · escribí para buscar`;
+    document.getElementById('nav-estado').textContent = `${productos.length} SKUs en catálogo`;
+  } catch(e) {
+    document.getElementById('search-hint').textContent = 'Error al cargar catálogo — verificá conexión';
+    console.error(e);
+  }
+
+  // Fecha default = hoy
+  document.getElementById('fecha-retiro').value = new Date().toISOString().split('T')[0];
+}
+
+// ── BÚSQUEDA ──────────────────────────────────────────────────
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('search-results');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (q.length < 2) { searchResults.classList.remove('open'); return; }
+
+  const matches = productos
+    .filter(p => p.nombre.toLowerCase().includes(q) || (p.linea||'').toLowerCase().includes(q))
+    .slice(0, 12);
+
+  if (matches.length === 0) {
+    searchResults.innerHTML = `<div class="search-item" style="cursor:default">
+      <div style="color:var(--coral);font-size:12px;font-weight:500">Producto no encontrado en el catálogo</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px">
+        Si es un producto nuevo de Sagrada Madre, actualizá las listas primero.<br>
+        Pedile a LIBRA que procese la nueva lista de precios y volvé a intentar.
+      </div>
+    </div>`;
+  } else {
+    searchResults.innerHTML = matches.map(p => `
+      <div class="search-item" onclick="agregarProducto('${p.id}')">
+        <div class="search-item-name">${p.nombre}</div>
+        <div class="search-item-meta">${p.linea} · stock actual: ${p.stock_actual} u. · precio dist: ${pesos(p.precio_dist)}</div>
+      </div>`).join('');
+  }
+  searchResults.classList.add('open');
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) searchResults.classList.remove('open');
+});
+
+// ── AGREGAR PRODUCTO ──────────────────────────────────────────
+function agregarProducto(id) {
+  const prod = productos.find(p => p.id === id);
+  if (!prod) return;
+  if (items[id]) { mostrarToast('Ya está en la lista'); searchResults.classList.remove('open'); searchInput.value = ''; return; }
+
+  items[id] = { producto: prod, cantidad: 1, costoUnit: prod.precio_dist };
+  searchResults.classList.remove('open');
+  searchInput.value = '';
+  renderItems();
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderItems() {
+  const list = document.getElementById('items-list');
+  const ids = Object.keys(items);
+
+  if (ids.length === 0) {
+    list.innerHTML = '<div class="empty-items">Buscá productos arriba para agregarlos al retiro</div>';
+    actualizarResumen();
+    return;
+  }
+
+  list.innerHTML = ids.map(id => {
+    const { producto: p, cantidad, costoUnit } = items[id];
+    const subtotal = Math.round(cantidad * costoUnit);
+    return `<div class="item-row" id="row-${id}">
+      <div>
+        <div class="item-name">${p.nombre}</div>
+        <div class="item-linea">${p.linea} · stock actual: ${p.stock_actual} u.</div>
+      </div>
+      <div>
+        <input type="number" class="item-input" min="1" value="${cantidad}"
+          onchange="actualizarCantidad('${id}', this.value)" style="width:100%">
+      </div>
+      <div class="item-costo-auto">
+        <div>${pesos(costoUnit)}</div>
+        <div class="item-costo-nota">lista dist vigente</div>
+        <input type="number" class="item-input" min="0" step="0.01" value="${costoUnit}"
+          onchange="actualizarCosto('${id}', this.value)"
+          style="margin-top:6px;font-size:11px;color:var(--amber)" title="Corregí si el precio cambió">
+      </div>
+      <div class="item-subtotal">${pesos(subtotal)}</div>
+      <button class="btn-remove" onclick="quitarProducto('${id}')">×</button>
+    </div>`;
+  }).join('');
+
+  actualizarResumen();
+}
+
+function actualizarCantidad(id, val) {
+  if (!items[id]) return;
+  items[id].cantidad = Math.max(1, parseInt(val)||1);
+  renderItems();
+}
+
+function actualizarCosto(id, val) {
+  if (!items[id]) return;
+  items[id].costoUnit = parseFloat(val)||0;
+  renderItems();
+}
+
+function quitarProducto(id) {
+  delete items[id];
+  renderItems();
+}
+
+function actualizarResumen() {
+  const ids = Object.keys(items);
+  const totalU = ids.reduce((s,id) => s + (items[id].cantidad||0), 0);
+  const totalC = ids.reduce((s,id) => s + (items[id].cantidad||0) * (items[id].costoUnit||0), 0);
+
+  document.getElementById('res-productos').textContent = ids.length;
+  document.getElementById('res-unidades').textContent = totalU.toLocaleString('es-AR');
+  document.getElementById('res-costo').textContent = pesos(totalC);
+  document.getElementById('btn-exportar').disabled = ids.length === 0;
+}
+
+// ── GENERAR SQL ───────────────────────────────────────────────
+function generarSQL() {
+  const ids = Object.keys(items);
+  const fecha = document.getElementById('fecha-retiro').value || new Date().toISOString().split('T')[0];
+  const compraId = 'COMPRA-' + Date.now();
+
+  let sql = `-- ============================================================\n`;
+  sql += `-- LIBRA OS · Ingreso de stock\n`;
+  sql += `-- Fecha retiro: ${fecha}\n`;
+  sql += `-- Productos: ${ids.length} · Generado: ${new Date().toLocaleString('es-AR')}\n`;
+  sql += `-- ============================================================\n\n`;
+
+  // Compra proveedor
+  sql += `-- 1. Registrar compra\n`;
+  sql += `INSERT INTO compras_proveedor (id, estado, aprobado_por, fecha_retiro)\n`;
+  sql += `VALUES ('${compraId}', 'retirado', 'dueño', '${fecha}');\n\n`;
+
+  // Items de compra + stock + costo promedio
+  sql += `-- 2. Items, stock y costo promedio\n`;
+  ids.forEach(id => {
+    const { producto: p, cantidad, costoUnit } = items[id];
+    const subtotal = Math.round(cantidad * costoUnit);
+
+    sql += `-- ${p.nombre}\n`;
+    sql += `INSERT INTO compras_items (compra_id, producto_id, cantidad, precio_costo_unitario, subtotal)\n`;
+    sql += `VALUES ('${compraId}', '${p.id}', ${cantidad}, ${costoUnit}, ${subtotal});\n\n`;
+
+    // Actualizar stock y recalcular costo promedio ponderado
+    sql += `UPDATE productos SET\n`;
+    sql += `  stock_actual = stock_actual + ${cantidad},\n`;
+    sql += `  costo_promedio = ROUND(\n`;
+    sql += `    (stock_actual * costo_promedio + ${cantidad} * ${costoUnit})\n`;
+    sql += `    / (stock_actual + ${cantidad}), 2),\n`;
+    sql += `  updated_at = NOW()\n`;
+    sql += `WHERE id = '${p.id}';\n\n`;
+
+    // Movimiento de stock
+    sql += `INSERT INTO movimientos_stock (producto_id, tipo, cantidad, stock_resultante, referencia_id, motivo, ejecutado_por)\n`;
+    sql += `SELECT '${p.id}', 'compra', ${cantidad}, stock_actual, '${compraId}', 'Retiro SM ${fecha}', 'dueño'\n`;
+    sql += `FROM productos WHERE id = '${p.id}';\n\n`;
+  });
+
+  sql += `-- ============================================================\n`;
+  sql += `-- FIN · Verificá en el dashboard que el stock se actualizó\n`;
+  sql += `-- ============================================================\n`;
+
+  document.getElementById('sql-output').textContent = sql;
+  document.getElementById('modal').classList.add('open');
+}
+
+function cerrarModal(e) {
+  if (e.target === document.getElementById('modal')) document.getElementById('modal').classList.remove('open');
+}
+
+function copiarSQL() {
+  const sql = document.getElementById('sql-output').textContent;
+  navigator.clipboard.writeText(sql).then(() => mostrarToast('SQL copiado al portapapeles'));
+}
+
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>
